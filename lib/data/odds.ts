@@ -1,0 +1,58 @@
+import type { Odds } from "@/lib/types";
+
+export const odds: Odds[] = [
+  {
+    id: "odds-1",
+    team: "Houston",
+    market: "Futures",
+    book: "Pinnacle",
+    price: 650,
+    impliedProbability: 0.133,
+    modelProbability: 0.156,
+  },
+  {
+    id: "odds-2",
+    team: "Connecticut",
+    market: "Futures",
+    book: "Circa",
+    price: 700,
+    impliedProbability: 0.125,
+    modelProbability: 0.143,
+  },
+  {
+    id: "odds-3",
+    team: "Purdue",
+    market: "Futures",
+    book: "FanDuel",
+    price: 850,
+    impliedProbability: 0.105,
+    modelProbability: 0.119,
+  },
+  {
+    id: "odds-4",
+    team: "Tennessee",
+    market: "Final Four",
+    book: "DraftKings",
+    price: 240,
+    impliedProbability: 0.294,
+    modelProbability: 0.327,
+  },
+  {
+    id: "odds-5",
+    team: "Arizona",
+    market: "Conference",
+    book: "BetMGM",
+    price: 320,
+    impliedProbability: 0.238,
+    modelProbability: 0.261,
+  },
+  {
+    id: "odds-6",
+    team: "North Carolina",
+    market: "Futures",
+    book: "Caesars",
+    price: 1100,
+    impliedProbability: 0.083,
+    modelProbability: 0.097,
+  },
+];

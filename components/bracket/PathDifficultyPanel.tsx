@@ -17,9 +17,7 @@ export function PathDifficultyPanel({
   const hardest = [...paths]
     .sort((left, right) => right.pathDifficulty - left.pathDifficulty)
     .slice(0, 10);
-  const highRiskGames = resolvedGames
-    .filter((game) => game.upsetRisk === "High")
-    .slice(0, 6);
+  const highRiskGames = resolvedGames.filter((game) => game.upsetRisk === "High").slice(0, 6);
 
   return (
     <div className="space-y-6">
@@ -83,6 +81,22 @@ export function PathDifficultyPanel({
       <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
         <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white">
           High upset spots
+        </h3>
+        <div className="mt-4 space-y-3">
+          {highRiskGames.map((game) => (
+            <div key={game.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+              <p className="text-sm font-medium text-white">
+                {game.teamA.team?.name ?? "TBD"} vs {game.teamB.team?.name ?? "TBD"}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">{game.round}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white">
+          Current upset risk
         </h3>
         <div className="mt-4 space-y-3">
           {highRiskGames.map((game) => (

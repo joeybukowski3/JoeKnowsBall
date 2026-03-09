@@ -4,29 +4,31 @@ import { useState } from "react";
 import { BracketBoard } from "@/components/bracket/BracketBoard";
 import { BracketControls } from "@/components/bracket/BracketControls";
 import { PathDifficultyPanel } from "@/components/bracket/PathDifficultyPanel";
+import { TournamentSimulationPanel } from "@/components/bracket/TournamentSimulationPanel";
 import { Panel } from "@/components/shared/Panel";
-import { rankingCategories } from "@/lib/data";
 import type {
   BracketGameNode,
   BracketMode,
   BracketRound,
   RankingPreset,
-  RankingResultRow,
-  RankingSettings,
   ResolvedBracketGame,
-  ResolvedBracketParticipant,
   Team,
+  TournamentSimulationResult,
 } from "@/lib/types";
 import { pathDifficulty } from "@/lib/utils/pathDifficulty";
-import { rankingsEngine } from "@/lib/utils/rankingsEngine";
+import {
+  autoFillBracket,
+  buildBracketRankingRows,
+  resolveBracket,
+  tournamentSimulator,
+  type BracketPicksMap,
+} from "@/lib/utils/tournamentSimulator";
 
 type BracketBuilderDashboardProps = {
   teams: Team[];
   bracketGames: BracketGameNode[];
   presets: RankingPreset[];
 };
-
-type PicksMap = Record<string, string>;
 
 const roundOrder: BracketRound[] = [
   "Round of 64",
@@ -37,170 +39,6 @@ const roundOrder: BracketRound[] = [
   "Championship",
 ];
 
-function clonePresetSettings(preset: RankingPreset): RankingSettings {
-  return {
-    presetId: preset.id,
-    activeCategories: { ...preset.activeCategories },
-    weights: { ...preset.weights },
-  };
-}
-
-function getWinProbability(scoreA: number | null, scoreB: number | null) {
-  if (scoreA === null || scoreB === null) {
-    return null;
-  }
-
-  return 1 / (1 + Math.exp(-(scoreA - scoreB) / 7.5));
-}
-
-function getUpsetRisk(
-  teamA: ResolvedBracketParticipant,
-  teamB: ResolvedBracketParticipant,
-) {
-  if (!teamA.team || !teamB.team || !teamA.rank || !teamB.rank) {
-    return "Toss-Up" as const;
-  }
-
-  const seedDiff = Math.abs((teamA.seed ?? 0) - (teamB.seed ?? 0));
-  const rankDiff = Math.abs(teamA.rank - teamB.rank);
-  const modelDiff = Math.abs((teamA.modelScore ?? 0) - (teamB.modelScore ?? 0));
-
-  if (seedDiff >= 6 && rankDiff <= 18 && modelDiff <= 8) {
-    return "High" as const;
-  }
-
-  if (seedDiff >= 3 && modelDiff <= 14) {
-    return "Medium" as const;
-  }
-
-  return modelDiff <= 5 ? "Toss-Up" as const : "Low" as const;
-}
-
-function resolveParticipant(
-  source: BracketGameNode["participants"][number],
-  teamsById: Map<string, Team>,
-  rankingById: Map<string, RankingResultRow>,
-  winnersByGame: Map<string, string | null>,
-): ResolvedBracketParticipant {
-  if (source.type === "team" && source.teamId) {
-    const team = teamsById.get(source.teamId) ?? null;
-    const ranking = team ? rankingById.get(team.id) : null;
-
-    return {
-      team,
-      seed: source.seed ?? (team?.seed ? Number(team.seed) : null),
-      modelScore: ranking?.overallScore ?? null,
-      rank: ranking?.rank ?? null,
-      winProbability: null,
-    };
-  }
-
-  if (source.type === "winner" && source.sourceGameId) {
-    const winnerTeamId = winnersByGame.get(source.sourceGameId);
-    const team = winnerTeamId ? teamsById.get(winnerTeamId) ?? null : null;
-    const ranking = team ? rankingById.get(team.id) : null;
-
-    return {
-      team,
-      seed: team?.seed ? Number(team.seed) : null,
-      modelScore: ranking?.overallScore ?? null,
-      rank: ranking?.rank ?? null,
-      winProbability: null,
-    };
-  }
-
-  return {
-    team: null,
-    seed: null,
-    modelScore: null,
-    rank: null,
-    winProbability: null,
-  };
-}
-
-function resolveBracket(
-  bracketGames: BracketGameNode[],
-  teams: Team[],
-  rankingRows: RankingResultRow[],
-  picks: PicksMap,
-) {
-  const teamsById = new Map(teams.map((team) => [team.id, team]));
-  const rankingById = new Map(rankingRows.map((row) => [row.team.id, row]));
-  const winnersByGame = new Map<string, string | null>();
-  const resolvedGames: ResolvedBracketGame[] = [];
-
-  const orderedGames = [...bracketGames].sort(
-    (left, right) =>
-      roundOrder.indexOf(left.round) - roundOrder.indexOf(right.round) ||
-      left.order - right.order,
-  );
-
-  for (const game of orderedGames) {
-    const teamA = resolveParticipant(
-      game.participants[0],
-      teamsById,
-      rankingById,
-      winnersByGame,
-    );
-    const teamB = resolveParticipant(
-      game.participants[1],
-      teamsById,
-      rankingById,
-      winnersByGame,
-    );
-    const probabilityA = getWinProbability(teamA.modelScore, teamB.modelScore);
-    const probabilityB = probabilityA !== null ? 1 - probabilityA : null;
-    teamA.winProbability = probabilityA;
-    teamB.winProbability = probabilityB;
-
-    const candidateWinner = picks[game.id];
-    const validWinner =
-      candidateWinner &&
-      [teamA.team?.id, teamB.team?.id].includes(candidateWinner)
-        ? candidateWinner
-        : null;
-
-    winnersByGame.set(game.id, validWinner);
-
-    resolvedGames.push({
-      id: game.id,
-      region: game.region,
-      round: game.round,
-      order: game.order,
-      nextGameId: game.nextGameId,
-      nextSlot: game.nextSlot,
-      teamA,
-      teamB,
-      winnerTeamId: validWinner,
-      upsetRisk: getUpsetRisk(teamA, teamB),
-    });
-  }
-
-  return resolvedGames;
-}
-
-function autoFillBracket(
-  bracketGames: BracketGameNode[],
-  teams: Team[],
-  rankingRows: RankingResultRow[],
-) {
-  const picks: PicksMap = {};
-  const resolved = resolveBracket(bracketGames, teams, rankingRows, picks);
-
-  for (const game of resolved) {
-    if (!game.teamA.team || !game.teamB.team) {
-      continue;
-    }
-
-    picks[game.id] =
-      (game.teamA.modelScore ?? 0) >= (game.teamB.modelScore ?? 0)
-        ? game.teamA.team.id
-        : game.teamB.team.id;
-  }
-
-  return picks;
-}
-
 export function BracketBuilderDashboard({
   teams,
   bracketGames,
@@ -208,11 +46,13 @@ export function BracketBuilderDashboard({
 }: BracketBuilderDashboardProps) {
   const [mode, setMode] = useState<BracketMode>("manual");
   const [presetId, setPresetId] = useState(presets[0].id);
-  const [picks, setPicks] = useState<PicksMap>({});
+  const [picks, setPicks] = useState<BracketPicksMap>({});
+  const [iterationCount, setIterationCount] = useState(5000);
+  const [simulationResult, setSimulationResult] =
+    useState<TournamentSimulationResult | null>(null);
 
   const selectedPreset = presets.find((preset) => preset.id === presetId) ?? presets[0];
-  const settings = clonePresetSettings(selectedPreset);
-  const rankingRows = rankingsEngine(teams, settings, rankingCategories);
+  const rankingRows = buildBracketRankingRows(teams, selectedPreset);
   const resolvedGames = resolveBracket(bracketGames, teams, rankingRows, picks);
   const rounds = Object.fromEntries(
     roundOrder.map((round) => [
@@ -222,6 +62,9 @@ export function BracketBuilderDashboard({
   ) as Record<BracketRound, ResolvedBracketGame[]>;
   const paths = pathDifficulty(teams, bracketGames, rankingRows);
   const championGame = resolvedGames.find((game) => game.id === "championship-1");
+  const upsetHotspots = resolvedGames.filter(
+    (game) => game.upsetRisk === "High" || game.upsetRisk === "Medium",
+  );
   const champion =
     championGame?.winnerTeamId
       ? teams.find((team) => team.id === championGame.winnerTeamId) ?? null
@@ -254,6 +97,18 @@ export function BracketBuilderDashboard({
     if (nextMode === "auto") {
       setPicks(autoFillBracket(bracketGames, teams, rankingRows));
     }
+  }
+
+  function handleRunSimulation() {
+    setSimulationResult(
+      tournamentSimulator({
+        teams,
+        bracketGames,
+        preset: selectedPreset,
+        iterations: iterationCount,
+        lockedPicks: picks,
+      }),
+    );
   }
 
   return (
@@ -295,6 +150,50 @@ export function BracketBuilderDashboard({
           champion={champion}
           resolvedGames={resolvedGames}
         />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <TournamentSimulationPanel
+          iterationCount={iterationCount}
+          onIterationChange={setIterationCount}
+          onRun={handleRunSimulation}
+          result={simulationResult}
+          upsetHotspots={upsetHotspots}
+        />
+        <Panel
+          eyebrow="Tournament Outlook"
+          title="Path difficulty analysis"
+          description="Current field difficulty and simulation output update under the active preset."
+        >
+          <div className="overflow-hidden rounded-2xl border border-slate-800">
+            <table className="min-w-full divide-y divide-slate-800 text-left">
+              <thead className="bg-slate-900/90">
+                <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  <th className="px-4 py-3">Team</th>
+                  <th className="px-4 py-3 text-right">Base</th>
+                  <th className="px-4 py-3 text-right">Path</th>
+                  <th className="px-4 py-3 text-right">Adjusted</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 bg-slate-950/50">
+                {paths.slice(0, 16).map((row) => (
+                  <tr key={row.team.id}>
+                    <td className="px-4 py-3 text-sm text-white">{row.team.name}</td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {row.baseModelScore.toFixed(1)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {row.pathDifficulty.toFixed(1)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-sky-300">
+                      {row.adjustedTournamentScore.toFixed(1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
       </div>
     </div>
   );

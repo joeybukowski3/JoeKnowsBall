@@ -202,3 +202,63 @@ export type PathDifficultyRow = {
   adjustedTournamentScore: number;
   rounds: PathDifficultyRound[];
 };
+
+export type TournamentSimulationRoundKey =
+  | "roundOf32"
+  | "sweet16"
+  | "elite8"
+  | "finalFour"
+  | "championshipGame"
+  | "champion";
+
+export type TournamentSimulationRow = {
+  team: Team;
+  roundOf32: number;
+  sweet16: number;
+  elite8: number;
+  finalFour: number;
+  championshipGame: number;
+  champion: number;
+};
+
+export type TournamentSimulationResult = {
+  iterations: number;
+  champion: Team | null;
+  rows: TournamentSimulationRow[];
+};
+
+export type FuturesMarket = {
+  id: string;
+  team: string;
+  book: string;
+  titleOdds: number;
+};
+
+export type BettingValueTier = "Strong" | "Medium" | "Small" | "Pass";
+
+export type GameValueRow = {
+  game: Game;
+  awayTeam: Team;
+  homeTeam: Team;
+  matchup: string;
+  sportsbookSpread: number;
+  modelSpread: number;
+  spreadEdge: number;
+  sportsbookMoneyline: number;
+  modelWinProbability: number;
+  impliedWinProbability: number;
+  moneylineEdge: number;
+  upsetRisk: ResolvedBracketGame["upsetRisk"];
+  valueTier: BettingValueTier;
+};
+
+export type FuturesValueRow = {
+  team: Team;
+  rank: number;
+  titleOdds: number;
+  impliedTitleProbability: number;
+  modelTitleProbability: number;
+  futuresEdge: number;
+  pathDifficulty: number;
+  valueTier: BettingValueTier;
+};

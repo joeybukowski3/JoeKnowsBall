@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "Home" },
+  { href: "/ncaa", label: "NCAA" },
+  { href: "/nfl", label: "NFL" },
+  { href: "/nba", label: "NBA" },
+  { href: "/mlb", label: "MLB" },
+  { href: "/pga", label: "PGA" },
   { href: "/matchup", label: "Matchup" },
   { href: "/bracket", label: "Bracket" },
   { href: "/betting", label: "Betting" },
@@ -21,14 +25,14 @@ export function Navbar() {
             Joe Knows Ball
           </p>
           <p className="mt-1 text-sm text-slate-400">
-            NCAA men&apos;s basketball analytics
+            Multi-sport betting analytics platform
           </p>
         </div>
         <nav className="flex flex-wrap gap-2">
           {navItems.map((item) => {
             const isActive =
-              item.href === "/"
-                ? pathname === item.href
+              item.href === "/ncaa"
+                ? pathname === item.href || pathname === "/"
                 : pathname.startsWith(item.href);
 
             return (

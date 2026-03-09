@@ -1,13 +1,5 @@
-import { RankingsDashboard } from "@/components/rankings/RankingsDashboard";
-import { games, mockTeams, odds, presets } from "@/lib/data";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return (
-    <RankingsDashboard
-      teams={mockTeams}
-      presets={presets}
-      odds={odds}
-      games={games}
-    />
-  );
+  redirect("/ncaa");
 }

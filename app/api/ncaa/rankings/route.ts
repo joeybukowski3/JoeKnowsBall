@@ -4,11 +4,5 @@ import { getNcaaRankingsData } from "@/lib/api/liveData";
 export async function GET() {
   const response = await getNcaaRankingsData();
 
-  return NextResponse.json({
-    ...response,
-    meta: {
-      ...response.meta,
-      count: response.data.length,
-    },
-  });
+  return NextResponse.json(response);
 }

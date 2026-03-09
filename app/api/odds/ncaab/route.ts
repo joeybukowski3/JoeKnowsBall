@@ -4,11 +4,5 @@ import { getNcaabOddsData } from "@/lib/api/liveData";
 export async function GET() {
   const response = await getNcaabOddsData();
 
-  return NextResponse.json({
-    ...response,
-    meta: {
-      ...response.meta,
-      count: response.data.odds.length,
-    },
-  });
+  return NextResponse.json(response);
 }

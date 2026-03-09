@@ -8,7 +8,15 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import { TeamChip } from "@/components/shared/TeamChip";
 import { rankingCategories } from "@/lib/data";
-import type { Game, Odds, RankingPreset, RankingResultRow, RankingSettings, Team } from "@/lib/types";
+import type {
+  DataSource,
+  Game,
+  Odds,
+  RankingPreset,
+  RankingResultRow,
+  RankingSettings,
+  Team,
+} from "@/lib/types";
 import { rankingsEngine } from "@/lib/utils/rankingsEngine";
 
 type RankingsDashboardProps = {
@@ -16,6 +24,7 @@ type RankingsDashboardProps = {
   presets: RankingPreset[];
   odds: Odds[];
   games: Game[];
+  dataSource?: DataSource;
 };
 
 type TeamView = "all" | "tournament";
@@ -49,7 +58,13 @@ function sortRows(rows: RankingResultRow[], sort: RankingsSortState) {
   return sorted;
 }
 
-export function RankingsDashboard({ teams, presets, odds, games }: RankingsDashboardProps) {
+export function RankingsDashboard({
+  teams,
+  presets,
+  odds,
+  games,
+  dataSource = "mock",
+}: RankingsDashboardProps) {
   const [teamView, setTeamView] = useState<TeamView>("all");
   const [settings, setSettings] = useState<RankingSettings>(() => clonePresetSettings(presets[0]));
   const [sort, setSort] = useState<RankingsSortState>({ key: "overallScore", direction: "desc" });
@@ -93,9 +108,14 @@ export function RankingsDashboard({ teams, presets, odds, games }: RankingsDashb
           title="March betting intelligence and power rankings"
           description="Custom rankings, tournament-field filtering, futures watchlists, and matchup context in a brighter premium NCAA dashboard."
         >
-          <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            <button type="button" onClick={() => setTeamView("all")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "all" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>All Teams</button>
-            <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "tournament" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>NCAA Tournament Field</button>
+          <div className="flex flex-col items-end gap-3">
+            <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
+              {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
+            </Badge>
+            <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <button type="button" onClick={() => setTeamView("all")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "all" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>All Teams</button>
+              <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "tournament" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>NCAA Tournament Field</button>
+            </div>
           </div>
         </PageHeader>
 

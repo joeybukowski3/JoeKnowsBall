@@ -1,6 +1,16 @@
 import { MatchupDashboard } from "@/components/matchup/MatchupDashboard";
-import { games, mockTeams, presets } from "@/lib/data";
+import { getMatchupPageData } from "@/lib/api/liveData";
+import { presets } from "@/lib/data";
 
-export default function MatchupPage() {
-  return <MatchupDashboard teams={mockTeams} games={games} presets={presets} />;
+export default async function MatchupPage() {
+  const { teams, games, meta } = await getMatchupPageData();
+
+  return (
+    <MatchupDashboard
+      teams={teams}
+      games={games}
+      presets={presets}
+      dataSource={meta.source}
+    />
+  );
 }

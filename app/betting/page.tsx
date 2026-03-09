@@ -1,15 +1,20 @@
 import { BettingDashboard } from "@/components/betting/BettingDashboard";
-import { games, mockBracketGames, mockBracketTeams, mockFutures, mockTeams, presets } from "@/lib/data";
+import { getBettingPageData } from "@/lib/api/liveData";
+import { presets } from "@/lib/data";
 
-export default function BettingPage() {
+export default async function BettingPage() {
+  const { teams, bracketTeams, games, futuresMarkets, bracketGames, meta } =
+    await getBettingPageData();
+
   return (
     <BettingDashboard
-      teams={mockTeams}
-      bracketTeams={mockBracketTeams}
+      teams={teams}
+      bracketTeams={bracketTeams}
       games={games}
       presets={presets}
-      futuresMarkets={mockFutures}
-      bracketGames={mockBracketGames}
+      futuresMarkets={futuresMarkets}
+      bracketGames={bracketGames}
+      dataSource={meta.source}
     />
   );
 }

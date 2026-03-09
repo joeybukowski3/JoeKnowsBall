@@ -1,11 +1,14 @@
 import { BracketBuilderDashboard } from "@/components/bracket/BracketBuilderDashboard";
-import { mockBracketGames, mockBracketTeams, presets } from "@/lib/data";
+import { getBettingPageData } from "@/lib/api/liveData";
+import { presets } from "@/lib/data";
 
-export default function BracketPage() {
+export default async function BracketPage() {
+  const { bracketGames, bracketTeams } = await getBettingPageData();
+
   return (
     <BracketBuilderDashboard
-      teams={mockBracketTeams}
-      bracketGames={mockBracketGames}
+      teams={bracketTeams}
+      bracketGames={bracketGames}
       presets={presets}
     />
   );

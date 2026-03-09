@@ -30,6 +30,7 @@ export type Team = {
   rank: number;
   seed?: string;
   isTournamentTeam: boolean;
+  logo?: string | null;
   stats: TeamStats;
   metrics: RankingMetrics;
 };
@@ -56,6 +57,20 @@ export type Odds = {
   price: number;
   impliedProbability: number;
   modelProbability: number;
+};
+
+export type DataSource = "live" | "mock";
+
+export type DataMeta = {
+  source: DataSource;
+  provider?: string;
+  updatedAt?: string;
+  fallbackReason?: string;
+};
+
+export type DataEnvelope<T> = {
+  data: T;
+  meta: DataMeta;
 };
 
 export type RankingPreset = {
@@ -232,6 +247,17 @@ export type FuturesMarket = {
   team: string;
   book: string;
   titleOdds: number;
+};
+
+export type GameOddsLine = {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  book: string;
+  commenceTime: string;
+  spread: number;
+  moneylineHome: number;
+  moneylineAway: number;
 };
 
 export type BettingValueTier = "Strong" | "Medium" | "Small" | "Pass";

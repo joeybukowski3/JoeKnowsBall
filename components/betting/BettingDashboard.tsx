@@ -8,8 +8,11 @@ import {
   type FuturesSortKey,
 } from "@/components/betting/FuturesValueTable";
 import { GameValueTable } from "@/components/betting/GameValueTable";
+import { Badge } from "@/components/shared/Badge";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import type {
+  DataSource,
   FuturesMarket,
   FuturesValueRow,
   Game,
@@ -37,6 +40,7 @@ type BettingDashboardProps = {
   presets: RankingPreset[];
   futuresMarkets: FuturesMarket[];
   bracketGames: import("@/lib/types").BracketGameNode[];
+  dataSource?: DataSource;
 };
 
 type GameSortOption = "edge" | "winProbability" | "closest" | "upsetRisk";
@@ -93,6 +97,7 @@ export function BettingDashboard({
   presets,
   futuresMarkets,
   bracketGames,
+  dataSource = "mock",
 }: BettingDashboardProps) {
   const [presetId, setPresetId] = useState(presets[0]?.id ?? "");
   const [dateFilter, setDateFilter] = useState("all");
@@ -278,18 +283,15 @@ export function BettingDashboard({
 
   return (
     <div className="space-y-6">
-      <section className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">
-          Betting Analytics
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">
-          NCAA game value and futures dashboard
-        </h1>
-        <p className="max-w-3xl text-sm text-slate-400">
-          Premium-style betting workflow built from internal power ratings, matchup
-          logic, sportsbook lines, and tournament simulation outputs.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="Betting Analytics"
+        title="NCAA game value and futures dashboard"
+        description="Premium-style betting workflow built from internal power ratings, matchup logic, sportsbook lines, and tournament simulation outputs."
+      >
+        <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
+          {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
+        </Badge>
+      </PageHeader>
 
       <BettingControls
         presets={presets}

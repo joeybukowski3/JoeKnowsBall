@@ -6,15 +6,17 @@ import { MatchupInsight } from "@/components/matchup/MatchupInsight";
 import { MatchupSelector } from "@/components/matchup/MatchupSelector";
 import { MatchupSummary } from "@/components/matchup/MatchupSummary";
 import { MatchupTable } from "@/components/matchup/MatchupTable";
+import { Badge } from "@/components/shared/Badge";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
-import type { Game, MatchupMode, RankingPreset, Team } from "@/lib/types";
+import type { DataSource, Game, MatchupMode, RankingPreset, Team } from "@/lib/types";
 import { matchupEngine } from "@/lib/utils/matchupEngine";
 
 type MatchupDashboardProps = {
   teams: Team[];
   games: Game[];
   presets: RankingPreset[];
+  dataSource?: DataSource;
 };
 
 function findTeamByName(teams: Team[], name: string) {
@@ -25,6 +27,7 @@ export function MatchupDashboard({
   teams,
   games,
   presets,
+  dataSource = "mock",
 }: MatchupDashboardProps) {
   const initialGame = games[0];
   const initialAway = findTeamByName(teams, initialGame.awayTeam) ?? teams[0];
@@ -108,7 +111,11 @@ export function MatchupDashboard({
         eyebrow="Matchup Model"
         title="Team comparison and matchup calculator"
         description="Compare any two teams through the same preset-driven ratings model powering the NCAA dashboard, then review market context and the biggest category edges."
-      />
+      >
+        <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
+          {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
+        </Badge>
+      </PageHeader>
 
       <Panel
         eyebrow="Controls"

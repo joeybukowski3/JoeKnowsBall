@@ -1,13 +1,17 @@
 import { RankingsDashboard } from "@/components/rankings/RankingsDashboard";
-import { games, mockTeams, odds, presets } from "@/lib/data";
+import { getNcaaDashboardData } from "@/lib/api/liveData";
+import { presets } from "@/lib/data";
 
-export default function NCAAPage() {
+export default async function NCAAPage() {
+  const { teams, games, odds, meta } = await getNcaaDashboardData();
+
   return (
     <RankingsDashboard
-      teams={mockTeams}
+      teams={teams}
       presets={presets}
       odds={odds}
       games={games}
+      dataSource={meta.source}
     />
   );
 }

@@ -8,6 +8,19 @@ export type TeamStats = {
   freeThrowRate: number;
 };
 
+export type RankingCategoryGroup =
+  | "offense"
+  | "defense"
+  | "shooting"
+  | "rebounding"
+  | "ballControl"
+  | "sos"
+  | "recentForm"
+  | "homeAway"
+  | "atsTrends";
+
+export type RankingMetrics = Record<RankingCategoryGroup, number>;
+
 export type Team = {
   id: string;
   name: string;
@@ -16,7 +29,9 @@ export type Team = {
   record: string;
   rank: number;
   seed?: string;
+  isTournamentTeam: boolean;
   stats: TeamStats;
+  metrics: RankingMetrics;
 };
 
 export type Game = {
@@ -25,8 +40,11 @@ export type Game = {
   awayTeam: string;
   homeSeed?: string;
   awaySeed?: string;
-  tipoff: string;
+  startTime: string;
   round: string;
+  spread: number;
+  moneylineHome: number;
+  moneylineAway: number;
   neutralSite: boolean;
 };
 
@@ -44,11 +62,74 @@ export type RankingPreset = {
   id: string;
   name: string;
   description: string;
-  weights: {
-    efficiency: number;
-    strengthOfSchedule: number;
-    recentForm: number;
+  activeCategories: Record<RankingCategoryGroup, boolean>;
+  weights: Record<RankingCategoryGroup, number>;
+};
+
+export type RankingCategoryConfig = {
+  key: RankingCategoryGroup;
+  label: string;
+  shortLabel: string;
+  description: string;
+  direction: "higher" | "lower";
+};
+
+export type RankingSettings = {
+  presetId: string;
+  activeCategories: Record<RankingCategoryGroup, boolean>;
+  weights: Record<RankingCategoryGroup, number>;
+};
+
+export type RankingCategoryScore = {
+  raw: number;
+  normalized: number;
+  active: boolean;
+  weight: number;
+};
+
+export type RankingResultRow = {
+  rank: number;
+  team: Team;
+  overallScore: number;
+  valueScore: number;
+  valueLabel: "Strong" | "Watch" | "Neutral";
+  categoryScores: Record<RankingCategoryGroup, RankingCategoryScore>;
+};
+
+export type MatchupMode = "upcoming" | "manual";
+
+export type MatchupCategoryResult = {
+  category: RankingCategoryGroup | "overall";
+  label: string;
+  teamAValue: number;
+  teamBValue: number;
+  teamANormalized: number;
+  teamBNormalized: number;
+  edge: "teamA" | "teamB" | "even";
+  difference: number;
+  active: boolean;
+  weight: number;
+};
+
+export type MatchupSummary = {
+  teamA: {
+    team: Team;
+    rank: number;
+    overallScore: number;
+    winProbability: number;
   };
+  teamB: {
+    team: Team;
+    rank: number;
+    overallScore: number;
+    winProbability: number;
+  };
+  rows: MatchupCategoryResult[];
+  scoreDifferential: number;
+  modelSpread: number;
+  marketSpread: number;
+  edgeTeam: "teamA" | "teamB" | "even";
+  valueIndicator: "Strong" | "Watch" | "Neutral";
 };
 
 export type BracketMatchup = {
@@ -59,4 +140,65 @@ export type BracketMatchup = {
   bottomTeam: string;
   upsetRisk: number;
   pathDifficulty: number;
+};
+
+export type BracketRound =
+  | "Round of 64"
+  | "Round of 32"
+  | "Sweet 16"
+  | "Elite 8"
+  | "Final Four"
+  | "Championship";
+
+export type BracketMode = "manual" | "auto";
+
+export type BracketParticipantSource = {
+  type: "team" | "winner";
+  teamId?: string;
+  sourceGameId?: string;
+  seed?: number;
+};
+
+export type BracketGameNode = {
+  id: string;
+  region: string;
+  round: BracketRound;
+  order: number;
+  nextGameId: string | null;
+  nextSlot: "teamA" | "teamB" | null;
+  participants: [BracketParticipantSource, BracketParticipantSource];
+};
+
+export type ResolvedBracketParticipant = {
+  team: Team | null;
+  seed: number | null;
+  modelScore: number | null;
+  rank: number | null;
+  winProbability: number | null;
+};
+
+export type ResolvedBracketGame = {
+  id: string;
+  region: string;
+  round: BracketRound;
+  order: number;
+  nextGameId: string | null;
+  nextSlot: "teamA" | "teamB" | null;
+  teamA: ResolvedBracketParticipant;
+  teamB: ResolvedBracketParticipant;
+  winnerTeamId: string | null;
+  upsetRisk: "Low" | "Medium" | "High" | "Toss-Up";
+};
+
+export type PathDifficultyRound = {
+  round: BracketRound;
+  expectedOpponentStrength: number;
+};
+
+export type PathDifficultyRow = {
+  team: Team;
+  baseModelScore: number;
+  pathDifficulty: number;
+  adjustedTournamentScore: number;
+  rounds: PathDifficultyRound[];
 };

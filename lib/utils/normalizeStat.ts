@@ -1,7 +1,22 @@
-export function normalizeStat(value: number, min: number, max: number) {
+type NormalizeStatOptions = {
+  inverse?: boolean;
+  scale?: number;
+};
+
+export function normalizeStat(
+  value: number,
+  min: number,
+  max: number,
+  options: NormalizeStatOptions = {},
+) {
+  const { inverse = false, scale = 100 } = options;
+
   if (max === min) {
-    return 0;
+    return scale;
   }
 
-  return (value - min) / (max - min);
+  const normalized = (value - min) / (max - min);
+  const adjusted = inverse ? 1 - normalized : normalized;
+
+  return adjusted * scale;
 }

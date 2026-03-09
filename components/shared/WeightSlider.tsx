@@ -1,9 +1,18 @@
+"use client";
+
 type WeightSliderProps = {
   label: string;
   value: number;
+  active: boolean;
+  onChange: (value: number) => void;
 };
 
-export function WeightSlider({ label, value }: WeightSliderProps) {
+export function WeightSlider({
+  label,
+  value,
+  active,
+  onChange,
+}: WeightSliderProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -15,8 +24,9 @@ export function WeightSlider({ label, value }: WeightSliderProps) {
         min="0"
         max="100"
         value={value}
-        readOnly
-        className="h-2 w-full cursor-default appearance-none rounded-full bg-slate-800 accent-sky-400"
+        disabled={!active}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="h-2 w-full appearance-none rounded-full bg-slate-800 accent-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
       />
     </div>
   );

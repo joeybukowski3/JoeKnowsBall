@@ -23,9 +23,9 @@ export function BracketControls({
   onReset,
 }: BracketControlsProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-800/80 bg-slate-950/70 p-5">
-      <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end">
-        <div className="max-w-[280px]">
+    <div className="space-y-5 rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_26px_70px_rgba(15,23,42,0.22)] backdrop-blur-sm">
+      <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-end">
+        <div className="max-w-[320px]">
           <PresetSelector
             presets={presets}
             value={presetId}
@@ -36,43 +36,53 @@ export function BracketControls({
           <button
             type="button"
             onClick={onAutoFill}
-            className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-white"
+            className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
           >
             Auto-fill bracket
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
+            className="rounded-2xl border border-white/12 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/14"
           >
             Reset bracket
           </button>
         </div>
       </div>
 
-      <div className="inline-flex rounded-xl border border-slate-800 bg-slate-900/80 p-1">
-        <button
-          type="button"
-          onClick={() => onModeChange("manual")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            mode === "manual"
-              ? "bg-slate-100 text-slate-950"
-              : "text-slate-300 hover:text-white"
-          }`}
-        >
-          Manual Mode
-        </button>
-        <button
-          type="button"
-          onClick={() => onModeChange("auto")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            mode === "auto"
-              ? "bg-slate-100 text-slate-950"
-              : "text-slate-300 hover:text-white"
-          }`}
-        >
-          Auto Mode
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-slate-950/55 p-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+            Board mode
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            Click winners in manual mode or let the current model advance the field.
+          </p>
+        </div>
+        <div className="inline-flex rounded-2xl border border-white/10 bg-slate-950/70 p-1">
+          <button
+            type="button"
+            onClick={() => onModeChange("manual")}
+            className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              mode === "manual"
+                ? "bg-white text-slate-950 shadow-sm"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Manual Mode
+          </button>
+          <button
+            type="button"
+            onClick={() => onModeChange("auto")}
+            className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              mode === "auto"
+                ? "bg-white text-slate-950 shadow-sm"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Auto Mode
+          </button>
+        </div>
       </div>
     </div>
   );

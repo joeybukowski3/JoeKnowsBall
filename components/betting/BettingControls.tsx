@@ -29,21 +29,21 @@ export function BettingControls({
   onSortChange,
 }: BettingControlsProps) {
   return (
-    <div className="space-y-5 rounded-2xl border border-slate-800/80 bg-slate-950/70 p-5">
-      <div className="grid gap-4 xl:grid-cols-[280px_200px_220px_minmax(0,1fr)]">
+    <div className="space-y-5 rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_26px_70px_rgba(15,23,42,0.22)] backdrop-blur-sm">
+      <div className="grid gap-4 xl:grid-cols-[320px_220px_220px_minmax(0,1fr)]">
         <PresetSelector
           presets={presets}
           value={presetId}
           onChange={onPresetChange}
         />
-        <div className="space-y-2">
+        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
           <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
             Date
           </label>
           <select
             value={dateFilter}
             onChange={(event) => onDateFilterChange(event.target.value)}
-            className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-200 outline-none transition focus:border-sky-400"
+            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
           >
             <option value="all">All Dates</option>
             {dateOptions.map((option) => (
@@ -53,7 +53,7 @@ export function BettingControls({
             ))}
           </select>
         </div>
-        <div className="space-y-2">
+        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
           <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
             Sort Games
           </label>
@@ -62,7 +62,7 @@ export function BettingControls({
             onChange={(event) =>
               onSortChange(event.target.value as BettingControlsProps["sortBy"])
             }
-            className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-200 outline-none transition focus:border-sky-400"
+            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
           >
             <option value="edge">Highest Edge</option>
             <option value="winProbability">Highest Win Probability</option>
@@ -70,17 +70,17 @@ export function BettingControls({
             <option value="upsetRisk">Biggest Upset Risk</option>
           </select>
         </div>
-        <div className="space-y-2">
+        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
           <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
             Slate Filter
           </label>
-          <div className="inline-flex rounded-xl border border-slate-800 bg-slate-900/80 p-1">
+          <div className="mt-3 inline-flex rounded-2xl border border-white/10 bg-slate-950/70 p-1">
             <button
               type="button"
               onClick={() => onGameFilterChange("all")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 gameFilter === "all"
-                  ? "bg-slate-100 text-slate-950"
+                  ? "bg-white text-slate-950 shadow-sm"
                   : "text-slate-300 hover:text-white"
               }`}
             >
@@ -89,9 +89,9 @@ export function BettingControls({
             <button
               type="button"
               onClick={() => onGameFilterChange("top")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 gameFilter === "top"
-                  ? "bg-slate-100 text-slate-950"
+                  ? "bg-white text-slate-950 shadow-sm"
                   : "text-slate-300 hover:text-white"
               }`}
             >

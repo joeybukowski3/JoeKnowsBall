@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/components/shared/Badge";
+import { TeamChip } from "@/components/shared/TeamChip";
 import type { RankingResultRow } from "@/lib/types";
 
 export type RankingsSortKey =
@@ -26,11 +28,7 @@ type RankingsTableProps = {
   onSort: (key: RankingsSortKey) => void;
 };
 
-const columns: Array<{
-  key: RankingsSortKey;
-  label: string;
-  align?: "left" | "right";
-}> = [
+const columns: Array<{ key: RankingsSortKey; label: string; align?: "left" | "right" }> = [
   { key: "rank", label: "Rank" },
   { key: "team", label: "Team" },
   { key: "conference", label: "Conference" },
@@ -44,10 +42,7 @@ const columns: Array<{
   { key: "valueLabel", label: "Value", align: "right" },
 ];
 
-function getSortIndicator(
-  active: boolean,
-  direction: RankingsSortState["direction"],
-) {
+function getSortIndicator(active: boolean, direction: RankingsSortState["direction"]) {
   if (!active) {
     return " ";
   }
@@ -57,88 +52,53 @@ function getSortIndicator(
 
 export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-800">
+    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/35">
       <div className="overflow-x-auto">
-        <table className="min-w-[1080px] divide-y divide-slate-800 text-left">
-          <thead className="bg-slate-900/90">
+        <table className="min-w-[1080px] divide-y divide-white/8 text-left">
+          <thead className="bg-white/[0.06]">
             <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
               {columns.map((column) => {
                 const isActive = sort.key === column.key;
 
                 return (
-                  <th
-                    key={column.key}
-                    className={`px-4 py-3 ${column.align === "right" ? "text-right" : "text-left"}`}
-                  >
+                  <th key={column.key} className={`px-4 py-3 ${column.align === "right" ? "text-right" : "text-left"}`}>
                     <button
                       type="button"
                       onClick={() => onSort(column.key)}
-                      className={`inline-flex items-center gap-2 rounded-md px-1 py-1 transition ${
-                        isActive ? "text-slate-100" : "hover:text-slate-200"
+                      className={`inline-flex items-center gap-2 rounded-lg px-2 py-1.5 transition ${
+                        isActive ? "bg-white/[0.08] text-slate-50" : "hover:bg-white/[0.04] hover:text-slate-200"
                       }`}
                     >
                       <span>{column.label}</span>
-                      <span className="w-3 text-center text-[11px]">
-                        {getSortIndicator(isActive, sort.direction)}
-                      </span>
+                      <span className="w-3 text-center text-[11px]">{getSortIndicator(isActive, sort.direction)}</span>
                     </button>
                   </th>
                 );
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 bg-slate-950/50">
+          <tbody className="divide-y divide-white/8 bg-transparent">
             {rows.map((row) => {
-              const valueTone =
-                row.valueLabel === "Strong"
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                  : row.valueLabel === "Watch"
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                    : "border-slate-700 bg-slate-900 text-slate-300";
+              const badgeTone = row.valueLabel === "Strong" ? "emerald" : row.valueLabel === "Watch" ? "amber" : "neutral";
 
               return (
-                <tr key={row.team.id} className="hover:bg-slate-900/70">
+                <tr key={row.team.id} className="hover:bg-white/[0.04]">
                   <td className="px-4 py-3 text-sm font-semibold text-white">
-                    {row.rank}
+                    <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs">#{row.rank}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        {row.team.name}
-                      </p>
-                      <p className="text-xs text-slate-500">{row.team.record}</p>
-                    </div>
+                    <TeamChip name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {row.team.conference}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-sky-300">
-                    {row.overallScore.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.offense.raw.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.defense.raw.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.shooting.raw.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.rebounding.raw.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.sos.raw.toFixed(0)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {row.categoryScores.recentForm.raw.toFixed(0)}
-                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">{row.team.conference}</td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-sky-300">{row.overallScore.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.offense.raw.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.defense.raw.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.shooting.raw.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.rebounding.raw.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.sos.raw.toFixed(0)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.recentForm.raw.toFixed(0)}</td>
                   <td className="px-4 py-3 text-right">
-                    <span
-                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${valueTone}`}
-                    >
-                      {row.valueLabel}
-                    </span>
+                    <Badge tone={badgeTone}>{row.valueLabel}</Badge>
                   </td>
                 </tr>
               );

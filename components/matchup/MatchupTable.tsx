@@ -1,3 +1,4 @@
+import { Badge } from "@/components/shared/Badge";
 import type { MatchupSummary, Team } from "@/lib/types";
 
 type MatchupTableProps = {
@@ -7,19 +8,15 @@ type MatchupTableProps = {
 };
 
 function formatValue(label: string, value: number) {
-  if (label === "SOS" || label === "Recent Form") {
-    return value.toFixed(0);
-  }
-
-  return value.toFixed(1);
+  return label === "SOS" || label === "Recent Form" ? value.toFixed(0) : value.toFixed(1);
 }
 
 export function MatchupTable({ summary, teamA, teamB }: MatchupTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-800">
+    <div className="overflow-hidden rounded-[24px] border border-white/10">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-800">
-          <thead className="bg-slate-900/90 text-left">
+        <table className="min-w-full divide-y divide-white/8">
+          <thead className="bg-white/[0.06] text-left">
             <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
               <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">{teamA.name}</th>
@@ -27,43 +24,24 @@ export function MatchupTable({ summary, teamA, teamB }: MatchupTableProps) {
               <th className="px-4 py-3 text-right">Edge</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 bg-slate-950/50">
-            {summary.rows.map((row) => {
-              const teamATone =
-                row.edge === "teamA" ? "text-sky-300 font-semibold" : "text-slate-300";
-              const teamBTone =
-                row.edge === "teamB" ? "text-sky-300 font-semibold" : "text-slate-300";
-
-              return (
-                <tr key={row.label} className="hover:bg-slate-900/70">
-                  <td className="px-4 py-3">
-                    <div>
-                      <p className="text-sm font-medium text-white">{row.label}</p>
-                      {row.label !== "Overall Model Score" ? (
-                        <p className="text-xs text-slate-500">
-                          {row.active ? `Weight ${row.weight}` : "Inactive"}
-                        </p>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className={`px-4 py-3 text-sm ${teamATone}`}>
-                    {formatValue(row.label, row.teamAValue)}
-                  </td>
-                  <td className={`px-4 py-3 text-sm ${teamBTone}`}>
-                    {formatValue(row.label, row.teamBValue)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm">
-                    <span className="text-slate-400">
-                      {row.edge === "even"
-                        ? "Even"
-                        : row.edge === "teamA"
-                          ? teamA.shortName
-                          : teamB.shortName}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+          <tbody className="divide-y divide-white/8 bg-transparent">
+            {summary.rows.map((row) => (
+              <tr key={row.label} className="hover:bg-white/[0.04]">
+                <td className="px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-white">{row.label}</p>
+                    {row.label !== "Overall Model Score" ? <p className="text-xs text-slate-500">{row.active ? `Weight ${row.weight}` : "Inactive"}</p> : null}
+                  </div>
+                </td>
+                <td className={`px-4 py-3 text-sm ${row.edge === "teamA" ? "font-semibold text-sky-300" : "text-slate-300"}`}>{formatValue(row.label, row.teamAValue)}</td>
+                <td className={`px-4 py-3 text-sm ${row.edge === "teamB" ? "font-semibold text-sky-300" : "text-slate-300"}`}>{formatValue(row.label, row.teamBValue)}</td>
+                <td className="px-4 py-3 text-right text-sm">
+                  <Badge tone={row.edge === "even" ? "neutral" : "sky"}>
+                    {row.edge === "even" ? "Even" : row.edge === "teamA" ? teamA.shortName : teamB.shortName}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

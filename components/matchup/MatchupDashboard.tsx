@@ -6,6 +6,7 @@ import { MatchupInsight } from "@/components/matchup/MatchupInsight";
 import { MatchupSelector } from "@/components/matchup/MatchupSelector";
 import { MatchupSummary } from "@/components/matchup/MatchupSummary";
 import { MatchupTable } from "@/components/matchup/MatchupTable";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import type { Game, MatchupMode, RankingPreset, Team } from "@/lib/types";
 import { matchupEngine } from "@/lib/utils/matchupEngine";
@@ -35,15 +36,15 @@ export function MatchupDashboard({
   const [teamBId, setTeamBId] = useState(initialHome.id);
   const [presetId, setPresetId] = useState(presets[0].id);
 
-  const selectedPreset = presets.find((preset) => preset.id === presetId) ?? presets[0];
+  const selectedPreset =
+    presets.find((preset) => preset.id === presetId) ?? presets[0];
   const selectedGame = games.find((game) => game.id === selectedGameId);
   const teamA = teams.find((team) => team.id === teamAId) ?? teams[0];
   const teamB =
-    teams.find((team) => team.id === teamBId) ?? teams.find((team) => team.id !== teamA.id) ?? teams[0];
-  const activeGame =
-    mode === "upcoming" && selectedGame
-      ? selectedGame
-      : undefined;
+    teams.find((team) => team.id === teamBId) ??
+    teams.find((team) => team.id !== teamA.id) ??
+    teams[0];
+  const activeGame = mode === "upcoming" && selectedGame ? selectedGame : undefined;
   const summary = matchupEngine({
     allTeams: teams,
     teamA,
@@ -103,18 +104,11 @@ export function MatchupDashboard({
 
   return (
     <div className="space-y-6">
-      <section className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">
-          Matchup Model
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">
-          Team comparison and matchup calculator
-        </h1>
-        <p className="max-w-3xl text-sm text-slate-400">
-          Compare any two teams through the same preset-driven model powering the
-          rankings dashboard, with a first-pass win probability and betting view.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="Matchup Model"
+        title="Team comparison and matchup calculator"
+        description="Compare any two teams through the same preset-driven ratings model powering the NCAA dashboard, then review market context and the biggest category edges."
+      />
 
       <Panel
         eyebrow="Controls"
@@ -139,7 +133,7 @@ export function MatchupDashboard({
 
       <MatchupSummary summary={summary} game={activeGame} />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_380px]">
         <Panel
           eyebrow="Comparison"
           title={`${teamA.name} vs ${teamB.name}`}
@@ -152,7 +146,7 @@ export function MatchupDashboard({
           <Panel
             eyebrow="Insight"
             title="What drives the edge"
-            description="Deterministic matchup explanation based on the model output."
+            description="Deterministic matchup explanation based on the current model output."
           >
             <MatchupInsight summary={summary} />
           </Panel>
@@ -162,7 +156,7 @@ export function MatchupDashboard({
       <Panel
         eyebrow="Betting View"
         title="Market comparison"
-        description="Early sportsbook vs model comparison using mock lines."
+        description="Early sportsbook versus model comparison using the current mock lines."
       >
         <BettingComparison summary={summary} game={activeGame} />
       </Panel>

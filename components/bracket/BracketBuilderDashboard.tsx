@@ -5,7 +5,9 @@ import { BracketBoard } from "@/components/bracket/BracketBoard";
 import { BracketControls } from "@/components/bracket/BracketControls";
 import { PathDifficultyPanel } from "@/components/bracket/PathDifficultyPanel";
 import { TournamentSimulationPanel } from "@/components/bracket/TournamentSimulationPanel";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
+import { TeamChip } from "@/components/shared/TeamChip";
 import type {
   BracketGameNode,
   BracketMode,
@@ -51,7 +53,8 @@ export function BracketBuilderDashboard({
   const [simulationResult, setSimulationResult] =
     useState<TournamentSimulationResult | null>(null);
 
-  const selectedPreset = presets.find((preset) => preset.id === presetId) ?? presets[0];
+  const selectedPreset =
+    presets.find((preset) => preset.id === presetId) ?? presets[0];
   const rankingRows = buildBracketRankingRows(teams, selectedPreset);
   const resolvedGames = resolveBracket(bracketGames, teams, rankingRows, picks);
   const rounds = Object.fromEntries(
@@ -113,18 +116,11 @@ export function BracketBuilderDashboard({
 
   return (
     <div className="space-y-6">
-      <section className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">
-          Bracket Builder
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">
-          Interactive tournament bracket
-        </h1>
-        <p className="max-w-3xl text-sm text-slate-400">
-          Build the field manually or auto-advance teams using the active ranking
-          preset, with path difficulty and upset risk analysis on the side.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="Bracket Builder"
+        title="Interactive tournament bracket"
+        description="Build the field manually or auto-advance teams using the active ranking preset, then compare path difficulty and simulation output against the current board."
+      />
 
       <BracketControls
         mode={mode}
@@ -136,7 +132,7 @@ export function BracketBuilderDashboard({
         onReset={handleReset}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.72fr)_380px]">
         <Panel
           eyebrow="Bracket View"
           title="Tournament board"
@@ -152,7 +148,7 @@ export function BracketBuilderDashboard({
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
         <TournamentSimulationPanel
           iterationCount={iterationCount}
           onIterationChange={setIterationCount}
@@ -163,29 +159,35 @@ export function BracketBuilderDashboard({
         <Panel
           eyebrow="Tournament Outlook"
           title="Path difficulty analysis"
-          description="Current field difficulty and simulation output update under the active preset."
+          description="Current field difficulty and model context under the active preset."
         >
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
-            <table className="min-w-full divide-y divide-slate-800 text-left">
-              <thead className="bg-slate-900/90">
-                <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+          <div className="overflow-hidden rounded-[24px] border border-white/10">
+            <table className="min-w-full divide-y divide-white/10 text-left">
+              <thead className="bg-slate-950/75">
+                <tr className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                   <th className="px-4 py-3">Team</th>
                   <th className="px-4 py-3 text-right">Base</th>
                   <th className="px-4 py-3 text-right">Path</th>
                   <th className="px-4 py-3 text-right">Adjusted</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-950/50">
+              <tbody className="divide-y divide-white/8 bg-white/[0.03]">
                 {paths.slice(0, 16).map((row) => (
-                  <tr key={row.team.id}>
-                    <td className="px-4 py-3 text-sm text-white">{row.team.name}</td>
-                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <tr key={row.team.id} className="transition hover:bg-white/[0.04]">
+                    <td className="px-4 py-3">
+                      <TeamChip
+                        name={row.team.name}
+                        shortName={row.team.shortName}
+                        compact
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-200">
                       {row.baseModelScore.toFixed(1)}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-slate-300">
                       {row.pathDifficulty.toFixed(1)}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-sky-300">
+                    <td className="px-4 py-3 text-right text-sm font-semibold text-sky-200">
                       {row.adjustedTournamentScore.toFixed(1)}
                     </td>
                   </tr>

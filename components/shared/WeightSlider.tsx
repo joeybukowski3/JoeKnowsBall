@@ -7,17 +7,14 @@ type WeightSliderProps = {
   onChange: (value: number) => void;
 };
 
-export function WeightSlider({
-  label,
-  value,
-  active,
-  onChange,
-}: WeightSliderProps) {
+export function WeightSlider({ label, value, active, onChange }: WeightSliderProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-slate-200">{label}</span>
-        <span className="text-xs text-slate-400">{value}%</span>
+        <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-slate-200">
+          {value}%
+        </span>
       </div>
       <input
         type="range"
@@ -26,7 +23,7 @@ export function WeightSlider({
         value={value}
         disabled={!active}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-2 w-full appearance-none rounded-full bg-slate-800 accent-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
+        className="h-2.5 w-full appearance-none rounded-full bg-white/10 accent-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
       />
     </div>
   );

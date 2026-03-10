@@ -53,4 +53,19 @@ export function logStatDiagnostics(profiles: NormalizedTeamStats[]) {
   if (incomplete.length > 0) {
     console.warn("[team-stats] incomplete stat profiles", incomplete);
   }
+
+  const categoryCoverage = Object.keys(profiles[0]?.values ?? {}).map((key) => {
+    const liveCount = profiles.filter(
+      (profile) => profile.values[key as keyof NormalizedTeamStats["values"]] !== null,
+    ).length;
+
+    return {
+      category: key,
+      coverage: Number((liveCount / Math.max(profiles.length, 1)).toFixed(2)),
+    };
+  });
+
+  if (categoryCoverage.length > 0) {
+    console.warn("[team-stats] category coverage", categoryCoverage);
+  }
 }

@@ -270,13 +270,23 @@ function parseEspnTablePage({
 }
 
 function parseNcaaStandingsPayload(payload: unknown, teams: Team[]) {
-  const entries = findArray(payload, [
+  const conferenceEntries = findArray(payload, [
     ["data"],
     ["standings"],
     ["teams"],
     ["rows"],
     ["conferenceStandings"],
   ]);
+  const entries = conferenceEntries.flatMap((entry) => {
+    if (Array.isArray(entry.standings)) {
+      return entry.standings.filter(
+        (standing): standing is GenericRecord =>
+          Boolean(standing && typeof standing === "object"),
+      );
+    }
+
+    return [entry];
+  });
 
   const records: ProviderStatRecord[] = [];
 
@@ -286,6 +296,7 @@ function parseNcaaStandingsPayload(payload: unknown, teams: Team[]) {
       entry.school,
       entry.name,
       entry.teamName,
+      entry.School,
     ].find((value) => typeof value === "string" && value.trim());
 
     if (typeof rawName !== "string") {
@@ -297,8 +308,12 @@ function parseNcaaStandingsPayload(payload: unknown, teams: Team[]) {
       continue;
     }
 
-    const wins = parseNumber(String(entry.wins ?? entry.overallWins ?? entry.w ?? ""));
-    const losses = parseNumber(String(entry.losses ?? entry.overallLosses ?? entry.l ?? ""));
+    const wins = parseNumber(
+      String(entry.wins ?? entry.overallWins ?? entry.w ?? entry["Overall W"] ?? ""),
+    );
+    const losses = parseNumber(
+      String(entry.losses ?? entry.overallLosses ?? entry.l ?? entry["Overall L"] ?? ""),
+    );
     const sos = parseNumber(
       String(
         entry.strengthOfSchedule ??
@@ -313,8 +328,18 @@ function parseNcaaStandingsPayload(payload: unknown, teams: Team[]) {
     }
 
     const gamesPlayed = (wins ?? 0) + (losses ?? 0);
+    const streakValue =
+      typeof entry["Overall STREAK"] === "string" ? String(entry["Overall STREAK"]) : "";
+    const streakCount = parseNumber(streakValue) ?? 0;
+    const streakBoost = streakValue.includes("Won")
+      ? Math.min(8, streakCount * 1.2)
+      : streakValue.includes("Lost")
+        ? -Math.min(8, streakCount * 1.2)
+        : 0;
     const recentForm =
-      gamesPlayed > 0 ? Number((((wins ?? 0) / gamesPlayed) * 100).toFixed(1)) : null;
+      gamesPlayed > 0
+        ? Number(((((wins ?? 0) / gamesPlayed) * 100) + streakBoost).toFixed(1))
+        : null;
     const homeAway = recentForm !== null ? Number((recentForm * 0.92 + 4).toFixed(1)) : null;
 
     records.push({

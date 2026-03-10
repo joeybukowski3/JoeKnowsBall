@@ -199,7 +199,7 @@ function extractRankingEntries(payload: unknown) {
 }
 
 function extractGameEntries(payload: unknown) {
-  return findArray(payload, [
+  const entries = findArray(payload, [
     ["games"],
     ["data"],
     ["data", "games"],
@@ -207,6 +207,10 @@ function extractGameEntries(payload: unknown) {
     ["scoreboard", "games"],
     ["events"],
   ]);
+
+  return entries.map((entry) =>
+    entry.game && typeof entry.game === "object" ? (entry.game as GenericRecord) : entry,
+  );
 }
 
 function formatStartTime(dateValue: string | undefined) {
@@ -247,7 +251,14 @@ export function adaptNcaaTeams({
 
   for (const entry of rankingEntries) {
     const rawName =
-      findFirstString(entry, [["team"], ["school"], ["name"], ["teamName"]]) ?? "";
+      findFirstString(entry, [
+        ["team"],
+        ["school"],
+        ["name"],
+        ["teamName"],
+        ["School"],
+        ["SCHOOL (1ST PLACE VOTES)"],
+      ])?.replace(/\s+\(\d+\)$/g, "") ?? "";
 
     if (!rawName) {
       continue;
@@ -257,9 +268,9 @@ export function adaptNcaaTeams({
     const fallbackTeam = match.matchedTeam ?? fallbackById.get(match.canonicalId);
     const team = buildDerivedTeam(
       rawName,
-      findFirstNumber(entry, [["rank"], ["currentRank"], ["position"]]),
-      findFirstString(entry, [["record"], ["stats", "record"]]),
-      findFirstString(entry, [["conference"], ["conferenceName"]]),
+      findFirstNumber(entry, [["rank"], ["currentRank"], ["position"], ["RANK"]]),
+      findFirstString(entry, [["record"], ["stats", "record"], ["RECORD"]]),
+      findFirstString(entry, [["conference"], ["conferenceName"], ["conference"]]),
       findFirstString(entry, [["logo"], ["logos", "0", "href"]]),
       fallbackTeam ?? undefined,
     );
@@ -342,17 +353,29 @@ export function adaptNcaaGames(payload: unknown, teams: Team[], fallbackGames: G
 
       return {
         id:
-          findFirstString(entry, [["id"], ["game", "id"], ["contestId"]]) ??
+          findFirstString(entry, [["id"], ["game", "id"], ["contestId"], ["gameID"]]) ??
           `live-game-${index + 1}`,
         homeTeam: homeMatch.matchedTeam?.name ?? homeMatch.canonicalName,
         awayTeam: awayMatch.matchedTeam?.name ?? awayMatch.canonicalName,
         homeSeed: homeMatch.matchedTeam?.seed,
         awaySeed: awayMatch.matchedTeam?.seed,
         startTime: formatStartTime(
-          findFirstString(entry, [["startTime"], ["gameDate"], ["date"], ["start_date"]]),
+          findFirstString(entry, [
+            ["startTime"],
+            ["gameDate"],
+            ["date"],
+            ["start_date"],
+            ["startDate"],
+          ]),
         ),
         round:
-          findFirstString(entry, [["round"], ["gameState"], ["status"], ["seasonType"]]) ??
+          findFirstString(entry, [
+            ["round"],
+            ["gameState"],
+            ["status"],
+            ["seasonType"],
+            ["bracketRound"],
+          ]) ??
           "Regular Season",
         spread: 0,
         moneylineHome: -110,
@@ -360,6 +383,7 @@ export function adaptNcaaGames(payload: unknown, teams: Team[], fallbackGames: G
         neutralSite: Boolean(
           entry.neutralSite ??
             entry.neutral_site ??
+            (typeof entry.bracketRegion === "string" && entry.bracketRegion.trim()) ??
             (findFirstString(entry, [["venue", "neutralSite"]]) === "true"),
         ),
       };

@@ -30,6 +30,48 @@ import { mergeStatsIntoTeams } from "@/lib/utils/statMerge";
 import { getStatsStatus, logStatDiagnostics } from "@/lib/utils/statAvailability";
 import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 import type { TeamStatsFeedBundle } from "@/lib/api/fetchTeamStats";
+const logoAuditKeys = new Set<string>();
+
+function mergeTeamPools(...teamPools: Team[][]) {
+  const merged = new Map<string, Team>();
+
+  for (const pool of teamPools) {
+    for (const team of pool) {
+      const existing = merged.get(team.id);
+      merged.set(team.id, existing ? { ...existing, ...team } : team);
+    }
+  }
+
+  return Array.from(merged.values()).sort((left, right) => left.rank - right.rank);
+}
+
+function logLogoCoverage(label: string, teams: Team[]) {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
+  const missingTeams = teams
+    .filter((team) => !team.logoUrl && !team.logo)
+    .map((team) => team.name)
+    .sort((left, right) => left.localeCompare(right));
+
+  const key = `${label}:${missingTeams.join("|")}`;
+  if (logoAuditKeys.has(key)) {
+    return;
+  }
+
+  logoAuditKeys.add(key);
+
+  if (missingTeams.length === 0) {
+    console.warn(`[team-logo-audit] ${label}: full live logo coverage across ${teams.length} teams`);
+    return;
+  }
+
+  console.warn(
+    `[team-logo-audit] ${label}: ${missingTeams.length} teams missing live logos`,
+    missingTeams.slice(0, 24),
+  );
+}
 
 function buildMockMeta(provider: string, fallbackReason: string): DataMeta {
   return {
@@ -158,11 +200,19 @@ export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
       standingsResult.status === "fulfilled" ? standingsResult.value : undefined;
     const gamesPayload =
       scoreboardResult.status === "fulfilled" ? scoreboardResult.value : undefined;
-    const teams = adaptNcaaTeams({
+    const rankingTeams = adaptNcaaTeams({
       rankingsPayload: rankingsPayload ?? standingsPayload,
       gamesPayload,
       fallbackTeams: mockTeams,
     });
+    const standingsTeams = standingsPayload
+      ? adaptNcaaTeams({
+          rankingsPayload: standingsPayload,
+          gamesPayload,
+          fallbackTeams: rankingTeams,
+        })
+      : [];
+    const teams = mergeTeamPools(standingsTeams, rankingTeams);
     const statFeeds = await fetchTeamStatsBundle({ standingsPayload });
     const teamStats = buildTeamStatsEnvelope(teams, statFeeds);
     const teamBranding = extractEspnTeamBranding({
@@ -173,10 +223,14 @@ export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
       mergeStatsIntoTeams(teams, teamStats.data),
       teamBranding,
     );
+    logLogoCoverage("ncaa-teams", enrichedTeams);
 
-    if (teams === mockTeams) {
+    if (enrichedTeams.length < 8) {
+      const fallbackTeamStats = mergeStatsIntoTeams(mockTeams, teamStats.data);
+      const fallbackTeams = mergeTeamLogos(fallbackTeamStats, teamBranding);
+      logLogoCoverage("ncaa-teams-fallback", fallbackTeams);
       return {
-        data: mergeTeamLogos(mergeStatsIntoTeams(mockTeams, teamStats.data), teamBranding),
+        data: fallbackTeams,
         meta: buildMockMeta("NCAA API", "Live NCAA team feed was unavailable."),
       };
     }
@@ -415,9 +469,13 @@ export async function getBettingPageData() {
     getFuturesData(),
   ]);
 
+  const bracketTeams = mergeBracketTeamsWithLive(dashboardData.teams);
+  logLogoCoverage("betting-teams", dashboardData.teams);
+  logLogoCoverage("bracket-teams", bracketTeams);
+
   return {
     teams: dashboardData.teams,
-    bracketTeams: mergeBracketTeamsWithLive(dashboardData.teams),
+    bracketTeams,
     games: dashboardData.games,
     futuresMarkets: futuresResult.data,
     bracketGames: mockBracketGames,

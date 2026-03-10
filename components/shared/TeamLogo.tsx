@@ -5,6 +5,7 @@ import type { Team } from "@/lib/types";
 import type { TeamMeta } from "@/lib/data/teamMeta";
 
 const missingLogoWarnings = new Set<string>();
+const failedLogoWarnings = new Set<string>();
 
 type TeamLogoProps = {
   team?: Pick<Team, "name" | "shortName" | "logo" | "logoUrl" | "logoDarkUrl" | "logoLightUrl" | "hasLiveLogo"> | null;
@@ -75,11 +76,19 @@ export function TeamLogo({
           className="h-full w-full object-contain p-1.5"
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() =>
+          onError={() => {
+            if (process.env.NODE_ENV !== "production") {
+              const warningKey = `${name}:${activeLogo}`;
+              if (!failedLogoWarnings.has(warningKey)) {
+                failedLogoWarnings.add(warningKey);
+                console.warn(`[team-logo] failed to load live logo for ${name}: ${activeLogo}`);
+              }
+            }
+
             setFailedUrls((current) =>
               current.includes(activeLogo) ? current : [...current, activeLogo],
-            )
-          }
+            );
+          }}
         />
       </div>
     );

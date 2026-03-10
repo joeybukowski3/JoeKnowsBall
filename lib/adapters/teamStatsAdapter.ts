@@ -3,8 +3,9 @@ import type {
   Team,
   TeamStatSource,
 } from "@/lib/types";
+import { canonicalTeamById } from "@/lib/data/teamAliases";
 import { normalizeTeamName } from "@/lib/utils/teamNameNormalizer";
-import { matchTeamName } from "@/lib/utils/teamMatcher";
+import { getCanonicalTeamIdentity, matchTeamName } from "@/lib/utils/teamMatcher";
 
 type StatValueKey = keyof NormalizedTeamStats["values"];
 
@@ -291,6 +292,22 @@ function matchEspnBrandingTeam(
   ].filter(Boolean);
 
   for (const candidate of candidates) {
+    const identity = getCanonicalTeamIdentity(candidate);
+    if (canonicalTeamById[identity.id]) {
+      const matchedTeam =
+        teams.find((team) => team.id === identity.id) ??
+        teams.find((team) => getCanonicalTeamIdentity(team.name).id === identity.id) ??
+        null;
+
+      return {
+        sourceName: candidate,
+        canonicalId: identity.id,
+        canonicalName: canonicalTeamById[identity.id].displayName,
+        confidence: identity.confidence,
+        matchedTeam,
+      };
+    }
+
     const match = matchTeamName(candidate, teams, "espn-branding");
     if (match.matchedTeam) {
       return match;
@@ -352,7 +369,8 @@ export function extractEspnTeamBranding({
 
       brandingByTeamId.set(matchedTeam.canonicalId, {
         teamId: matchedTeam.canonicalId,
-        displayName: matchedTeam.matchedTeam.name,
+        displayName:
+          matchedTeam.matchedTeam?.name ?? matchedTeam.canonicalName ?? displayName,
         logoUrl: logo,
         logoLightUrl: logo,
         logoDarkUrl: logo,

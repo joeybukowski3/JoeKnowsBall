@@ -3,6 +3,11 @@
 import { useMemo, useState } from "react";
 import { BettingControls } from "@/components/betting/BettingControls";
 import { BettingSummaryPanel } from "@/components/betting/BettingSummaryPanel";
+import { FuturesValueWatch } from "@/components/insights/FuturesValueWatch";
+import { InsightCard } from "@/components/insights/InsightCard";
+import { InsightSection } from "@/components/insights/InsightSection";
+import { TopValuePlays } from "@/components/insights/TopValuePlays";
+import { UpsetWatch } from "@/components/insights/UpsetWatch";
 import {
   FuturesValueTable,
   type FuturesSortKey,
@@ -24,6 +29,7 @@ import type {
 import { matchupEngine } from "@/lib/utils/matchupEngine";
 import {
   americanToImpliedProbability,
+  formatAmericanOdds,
 } from "@/lib/utils/oddsCalculator";
 import { pathDifficulty } from "@/lib/utils/pathDifficulty";
 import {
@@ -31,7 +37,14 @@ import {
   getUpsetRisk,
   tournamentSimulator,
 } from "@/lib/utils/tournamentSimulator";
+import { matchTeamName } from "@/lib/utils/teamMatcher";
 import { getSpreadValueTier, getValueTier } from "@/lib/utils/valueRatings";
+import {
+  buildFuturesValueWatch,
+  buildTopSpreadEdges,
+  buildTopValuePlays,
+  buildUpsetWatch,
+} from "@/lib/utils/insightBuilders";
 
 type BettingDashboardProps = {
   teams: Team[];
@@ -128,8 +141,8 @@ export function BettingDashboard({
 
   const gameRows = games
     .map((game) => {
-      const awayTeam = teams.find((team) => team.name === game.awayTeam);
-      const homeTeam = teams.find((team) => team.name === game.homeTeam);
+      const awayTeam = matchTeamName(game.awayTeam, teams, "betting-away").matchedTeam;
+      const homeTeam = matchTeamName(game.homeTeam, teams, "betting-home").matchedTeam;
 
       if (!awayTeam || !homeTeam) {
         return null;
@@ -205,8 +218,8 @@ export function BettingDashboard({
 
   const futuresRows = futuresMarkets
     .map((market) => {
-      const team = bracketTeams.find((entry) => entry.name === market.team);
-      const rankRow = rankingByName.get(market.team);
+      const team = matchTeamName(market.team, bracketTeams, "betting-futures").matchedTeam;
+      const rankRow = team ? rankingByName.get(team.name) : null;
 
       if (!team || !rankRow) {
         return null;
@@ -270,6 +283,10 @@ export function BettingDashboard({
       ? filteredGameRows.reduce((sum, row) => sum + row.moneylineEdge, 0) /
         filteredGameRows.length
       : 0;
+  const topValuePlays = buildTopValuePlays(filteredGameRows, 5);
+  const topSpreadPlays = buildTopSpreadEdges(filteredGameRows, 1);
+  const upsetWatch = buildUpsetWatch(filteredGameRows, 5);
+  const topFutures = buildFuturesValueWatch(futuresRows, 5);
 
   function handleFuturesSort(key: FuturesSortKey) {
     if (futuresSort === key) {
@@ -305,6 +322,54 @@ export function BettingDashboard({
         onGameFilterChange={setGameFilter}
         onSortChange={setGameSort}
       />
+
+      <InsightSection
+        eyebrow="Betting Insights"
+        title="Today's strongest model angles"
+        description="Fast-turn betting content pulled directly from the current preset, market lines, and futures model."
+      >
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InsightCard
+              eyebrow="Moneyline"
+              title={strongestMoneyline?.matchup ?? "No edge"}
+              value={
+                strongestMoneyline
+                  ? `${(strongestMoneyline.moneylineEdge * 100).toFixed(1)}%`
+                  : "--"
+              }
+              tone="emerald"
+              description="Strongest moneyline edge on the filtered slate."
+            />
+            <InsightCard
+              eyebrow="Spread"
+              title={strongestSpread?.matchup ?? "No edge"}
+              value={
+                strongestSpread ? `${strongestSpread.spreadEdge.toFixed(1)} pts` : "--"
+              }
+              tone="sky"
+              description={`Top spread discrepancy${topSpreadPlays[0] ? ` • ${formatAmericanOdds(topSpreadPlays[0].sportsbookMoneyline)} moneyline` : ""}.`}
+            />
+            <InsightCard
+              eyebrow="Futures"
+              title={bestFutures?.team.name ?? "No futures edge"}
+              value={bestFutures ? `${(bestFutures.futuresEdge * 100).toFixed(1)}%` : "--"}
+              tone="sky"
+              description="Best title-futures value after simulation and path adjustments."
+            />
+            <InsightCard
+              eyebrow="Volatility"
+              title={mostUpsetProne?.matchup ?? "No hotspot"}
+              value={mostUpsetProne?.upsetRisk ?? "--"}
+              tone="amber"
+              description="Most upset-prone matchup on the board."
+            />
+          </div>
+          <TopValuePlays rows={topValuePlays} title="Top 5 Value Plays Today" />
+          <UpsetWatch games={upsetWatch} title="Most Upset-Prone Matchups" />
+          <FuturesValueWatch rows={topFutures} title="Best Futures Value" />
+        </div>
+      </InsightSection>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_360px]">
         <div className="space-y-6">

@@ -8,6 +8,7 @@ import type {
   Team,
 } from "@/lib/types";
 import { rankingsEngine } from "@/lib/utils/rankingsEngine";
+import { namesReferToSameTeam } from "@/lib/utils/teamMatcher";
 
 type MatchupEngineInput = {
   allTeams: Team[];
@@ -46,11 +47,11 @@ function getVenueAdjustment(game: Game | undefined, teamA: Team, teamB: Team) {
     return 0;
   }
 
-  if (game.homeTeam === teamA.name) {
+  if (namesReferToSameTeam(game.homeTeam, teamA.name)) {
     return 2.5;
   }
 
-  if (game.homeTeam === teamB.name) {
+  if (namesReferToSameTeam(game.homeTeam, teamB.name)) {
     return -2.5;
   }
 

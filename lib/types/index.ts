@@ -73,6 +73,16 @@ export type DataEnvelope<T> = {
   meta: DataMeta;
 };
 
+export type TeamMatchConfidence = "exact" | "alias" | "derived" | "unresolved";
+
+export type TeamMatchResult = {
+  sourceName: string;
+  canonicalId: string;
+  canonicalName: string;
+  confidence: TeamMatchConfidence;
+  matchedTeam: Team | null;
+};
+
 export type RankingPreset = {
   id: string;
   name: string;
@@ -172,6 +182,28 @@ export type BracketParticipantSource = {
   teamId?: string;
   sourceGameId?: string;
   seed?: number;
+};
+
+export type TournamentRegion = "East" | "West" | "South" | "Midwest";
+
+export type TournamentFieldEntry = {
+  teamId: string;
+  displayName: string;
+  seed: number;
+  region: TournamentRegion;
+  slot: number;
+  playIn?: boolean;
+  active?: boolean;
+  locked?: boolean;
+};
+
+export type TournamentFieldValidation = {
+  isValid: boolean;
+  warnings: string[];
+  duplicateTeamIds: string[];
+  duplicateSlots: string[];
+  invalidRegions: string[];
+  missingSeedsByRegion: Record<TournamentRegion, number[]>;
 };
 
 export type BracketGameNode = {

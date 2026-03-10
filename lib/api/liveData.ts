@@ -1,4 +1,4 @@
-import { adaptNcaaGames, adaptNcaaTeams, normalizeTeamName } from "@/lib/adapters/ncaaAdapter";
+import { adaptNcaaGames, adaptNcaaTeams } from "@/lib/adapters/ncaaAdapter";
 import { adaptOddsToGameLines, adaptOddsToTeamOdds } from "@/lib/adapters/oddsAdapter";
 import {
   fetchNcaaRankingsFeed,
@@ -10,12 +10,14 @@ import { fetchNcaabOddsFeed } from "@/lib/api/fetchOdds";
 import {
   games as fallbackGames,
   mockBracketGames,
-  mockBracketTeams,
   mockFutures,
   mockTeams,
   odds as fallbackOdds,
 } from "@/lib/data";
+import { tournamentField } from "@/lib/data/tournamentField";
 import type { DataEnvelope, DataMeta, FuturesMarket, Game, Team } from "@/lib/types";
+import { buildTournamentTeams } from "@/lib/utils/buildTournamentBracket";
+import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 
 function buildMockMeta(provider: string, fallbackReason: string): DataMeta {
   return {
@@ -37,14 +39,14 @@ function buildLiveMeta(provider: string): DataMeta {
 function mergeGamesWithOdds(games: Game[], lines: ReturnType<typeof adaptOddsToGameLines>) {
   const oddsByMatchup = new Map(
     lines.map((line) => [
-      `${normalizeTeamName(line.awayTeam)}::${normalizeTeamName(line.homeTeam)}`,
+      `${getCanonicalTeamIdentity(line.awayTeam).id}::${getCanonicalTeamIdentity(line.homeTeam).id}`,
       line,
     ]),
   );
 
   return games.map((game) => {
     const match = oddsByMatchup.get(
-      `${normalizeTeamName(game.awayTeam)}::${normalizeTeamName(game.homeTeam)}`,
+      `${getCanonicalTeamIdentity(game.awayTeam).id}::${getCanonicalTeamIdentity(game.homeTeam).id}`,
     );
 
     if (!match) {
@@ -62,28 +64,7 @@ function mergeGamesWithOdds(games: Game[], lines: ReturnType<typeof adaptOddsToG
 }
 
 function mergeBracketTeamsWithLive(liveTeams: Team[]) {
-  const liveByName = new Map(liveTeams.map((team) => [normalizeTeamName(team.name), team]));
-
-  return mockBracketTeams.map((team) => {
-    const liveTeam = liveByName.get(normalizeTeamName(team.name));
-
-    if (!liveTeam) {
-      return team;
-    }
-
-    return {
-      ...team,
-      record: liveTeam.record,
-      conference: liveTeam.conference,
-      rank: liveTeam.rank,
-      logo: liveTeam.logo,
-      stats: liveTeam.stats,
-      metrics: {
-        ...team.metrics,
-        ...liveTeam.metrics,
-      },
-    };
-  });
+  return buildTournamentTeams(liveTeams, tournamentField);
 }
 
 export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
@@ -199,10 +180,10 @@ export async function getNcaaTeamData(teamId: string) {
   }
 }
 
-export async function getNcaabOddsData() {
+export async function getNcaabOddsData(teams: Team[] = mockTeams) {
   try {
     const payload = await fetchNcaabOddsFeed();
-    const lines = adaptOddsToGameLines(payload);
+    const lines = adaptOddsToGameLines(payload, teams);
     const oddsRows = adaptOddsToTeamOdds(lines);
 
     if (lines.length === 0) {
@@ -247,7 +228,7 @@ export async function getNcaaDashboardData() {
   const teamsResult = await getNcaaTeamsData();
   const [gamesResult, oddsResult] = await Promise.all([
     getNcaaGamesData(teamsResult.data),
-    getNcaabOddsData(),
+    getNcaabOddsData(teamsResult.data),
   ]);
 
   const enrichedGames = mergeGamesWithOdds(gamesResult.data, oddsResult.data.lines);
@@ -301,5 +282,34 @@ export async function getBettingPageData() {
       fallbackReason: dashboardData.meta.fallbackReason ?? futuresResult.meta.fallbackReason,
       updatedAt: new Date().toISOString(),
     } satisfies DataMeta,
+  };
+}
+
+export async function getNcaaTeamPageData(teamId: string) {
+  const [bettingData, teamResult] = await Promise.all([
+    getBettingPageData(),
+    getNcaaTeamData(teamId),
+  ]);
+
+  const detailedTeam = teamResult.data;
+  const teams = detailedTeam
+    ? bettingData.teams.map((team) => (team.id === teamId ? { ...team, ...detailedTeam } : team))
+    : bettingData.teams;
+  const bracketTeams = detailedTeam
+    ? bettingData.bracketTeams.map((team) =>
+        team.id === teamId ? { ...team, ...detailedTeam, seed: team.seed ?? detailedTeam.seed } : team,
+      )
+    : bettingData.bracketTeams;
+  const team =
+    teams.find((entry) => entry.id === teamId) ??
+    bracketTeams.find((entry) => entry.id === teamId) ??
+    null;
+
+  return {
+    ...bettingData,
+    teams,
+    bracketTeams,
+    team,
+    teamMeta: teamResult.meta,
   };
 }

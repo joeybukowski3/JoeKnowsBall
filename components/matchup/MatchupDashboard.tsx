@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import type { DataSource, Game, MatchupMode, RankingPreset, Team } from "@/lib/types";
 import { matchupEngine } from "@/lib/utils/matchupEngine";
+import { matchTeamName } from "@/lib/utils/teamMatcher";
 
 type MatchupDashboardProps = {
   teams: Team[];
@@ -20,7 +21,7 @@ type MatchupDashboardProps = {
 };
 
 function findTeamByName(teams: Team[], name: string) {
-  return teams.find((team) => team.name === name);
+  return matchTeamName(name, teams, "matchup-selector").matchedTeam;
 }
 
 export function MatchupDashboard({

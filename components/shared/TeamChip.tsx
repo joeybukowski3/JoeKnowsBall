@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 import { getTeamMeta } from "@/lib/data/teamMeta";
 
 type TeamChipProps = {
@@ -5,6 +7,7 @@ type TeamChipProps = {
   shortName?: string;
   subtitle?: string;
   compact?: boolean;
+  href?: string | null;
 };
 
 export function TeamChip({
@@ -12,11 +15,17 @@ export function TeamChip({
   shortName,
   subtitle,
   compact = false,
+  href,
 }: TeamChipProps) {
   const meta = getTeamMeta(name);
-
-  return (
-    <div className="flex items-center gap-3">
+  const teamHref =
+    href === undefined
+      ? name !== "TBD"
+        ? `/ncaa/team/${getCanonicalTeamIdentity(name).id}`
+        : null
+      : href;
+  const content = (
+    <>
       <div
         className={`flex shrink-0 items-center justify-center rounded-2xl border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] ${
           compact ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
@@ -36,6 +45,16 @@ export function TeamChip({
           <p className="truncate text-xs text-slate-400">{subtitle}</p>
         ) : null}
       </div>
-    </div>
+    </>
+  );
+
+  if (!teamHref) {
+    return <div className="flex items-center gap-3">{content}</div>;
+  }
+
+  return (
+    <Link href={teamHref} className="flex items-center gap-3 transition hover:opacity-90">
+      {content}
+    </Link>
   );
 }

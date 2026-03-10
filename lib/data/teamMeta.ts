@@ -1,3 +1,5 @@
+import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
+
 type TeamMeta = {
   primary: string;
   secondary: string;
@@ -29,7 +31,8 @@ function deriveMonogram(name: string) {
 }
 
 export function getTeamMeta(name: string) {
-  const meta = teamMeta[name];
+  const canonicalName = getCanonicalTeamIdentity(name).displayName;
+  const meta = teamMeta[canonicalName] ?? teamMeta[name];
 
   if (meta) {
     return meta;
@@ -38,6 +41,6 @@ export function getTeamMeta(name: string) {
   return {
     primary: "#38bdf8",
     secondary: "#f8fafc",
-    monogram: deriveMonogram(name),
+    monogram: deriveMonogram(canonicalName),
   };
 }

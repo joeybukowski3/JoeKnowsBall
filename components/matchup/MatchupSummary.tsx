@@ -2,6 +2,7 @@ import { getTeamMeta } from "@/lib/data/teamMeta";
 import { Badge } from "@/components/shared/Badge";
 import { TeamChip } from "@/components/shared/TeamChip";
 import type { Game, MatchupSummary as MatchupSummaryType } from "@/lib/types";
+import { namesReferToSameTeam } from "@/lib/utils/teamMatcher";
 
 type MatchupSummaryProps = {
   summary: MatchupSummaryType;
@@ -38,7 +39,7 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
           <Badge tone="neutral">Off {summary.teamA.team.metrics.offense.toFixed(1)}</Badge>
           <Badge tone="neutral">Def {summary.teamA.team.metrics.defense.toFixed(1)}</Badge>
           <Badge tone="neutral">Form {summary.teamA.team.metrics.recentForm.toFixed(0)}</Badge>
-          {game && game.homeTeam === summary.teamA.team.name && !game.neutralSite ? <Badge tone="sky">Home Court</Badge> : null}
+          {game && namesReferToSameTeam(game.homeTeam, summary.teamA.team.name) && !game.neutralSite ? <Badge tone="sky">Home Court</Badge> : null}
         </div>
       </section>
 
@@ -62,7 +63,7 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
           <Badge tone="neutral">Off {summary.teamB.team.metrics.offense.toFixed(1)}</Badge>
           <Badge tone="neutral">Def {summary.teamB.team.metrics.defense.toFixed(1)}</Badge>
           <Badge tone="neutral">Form {summary.teamB.team.metrics.recentForm.toFixed(0)}</Badge>
-          {game && game.homeTeam === summary.teamB.team.name && !game.neutralSite ? <Badge tone="sky">Home Court</Badge> : null}
+          {game && namesReferToSameTeam(game.homeTeam, summary.teamB.team.name) && !game.neutralSite ? <Badge tone="sky">Home Court</Badge> : null}
         </div>
       </section>
     </div>

@@ -1,43 +1,10 @@
 import { mockTeams } from "@/lib/data/mockTeams";
+import { tournamentFieldTeamIds } from "@/lib/data/tournamentField";
 import type { Game, Team } from "@/lib/types";
+import { createTeamSlug } from "@/lib/utils/teamNameNormalizer";
+import { getCanonicalTeamIdentity, matchTeamName } from "@/lib/utils/teamMatcher";
 
 type GenericRecord = Record<string, unknown>;
-
-const TEAM_NAME_ALIASES: Record<string, string> = {
-  uconn: "Connecticut",
-  connecticuthuskies: "Connecticut",
-  unc: "North Carolina",
-  northcarolinatarheels: "North Carolina",
-  floridaatlanticowls: "Florida Atlantic",
-  floridaatlantic: "Florida Atlantic",
-  iowastatecyclones: "Iowa State",
-  houstoncougars: "Houston",
-  dukebluedevils: "Duke",
-  arizonawildcats: "Arizona",
-  purdueboilermakers: "Purdue",
-  tennesseevolunteers: "Tennessee",
-  alabamacrimsontide: "Alabama",
-  creightonbluejays: "Creighton",
-  wisconsinbadgers: "Wisconsin",
-};
-
-function compactName(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-export function normalizeTeamName(value: string) {
-  const trimmed = value.trim();
-  const compact = compactName(trimmed);
-
-  return TEAM_NAME_ALIASES[compact] ?? trimmed;
-}
-
-function toSlug(value: string) {
-  return normalizeTeamName(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 function parseNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -109,7 +76,9 @@ function findFirstNumber(entry: GenericRecord, paths: string[][]) {
 
 function findArray(payload: unknown, candidates: string[][]): GenericRecord[] {
   if (Array.isArray(payload)) {
-    return payload.filter((entry): entry is GenericRecord => Boolean(entry && typeof entry === "object"));
+    return payload.filter(
+      (entry): entry is GenericRecord => Boolean(entry && typeof entry === "object"),
+    );
   }
 
   if (!payload || typeof payload !== "object") {
@@ -129,7 +98,9 @@ function findArray(payload: unknown, candidates: string[][]): GenericRecord[] {
     }
 
     if (Array.isArray(current)) {
-      return current.filter((entry): entry is GenericRecord => Boolean(entry && typeof entry === "object"));
+      return current.filter(
+        (entry): entry is GenericRecord => Boolean(entry && typeof entry === "object"),
+      );
     }
   }
 
@@ -137,46 +108,70 @@ function findArray(payload: unknown, candidates: string[][]): GenericRecord[] {
 }
 
 function buildDerivedTeam(
-  name: string,
+  rawName: string,
   rank: number | undefined,
   record: string | undefined,
   conference: string | undefined,
   logo: string | undefined,
   fallbackTeam?: Team,
 ): Team {
+  const identity = getCanonicalTeamIdentity(rawName);
   const parsedRecord = parseRecord(record ?? fallbackTeam?.record);
   const winPct = parsedRecord.wins / Math.max(parsedRecord.wins + parsedRecord.losses, 1);
   const rankValue = rank ?? fallbackTeam?.rank ?? 40;
   const powerBoost = Math.max(0, 26 - rankValue);
 
-  const offense = fallbackTeam?.metrics.offense ?? Number((108 + winPct * 18 + powerBoost * 0.35).toFixed(1));
-  const defense = fallbackTeam?.metrics.defense ?? Number((101 - winPct * 10 - powerBoost * 0.22).toFixed(1));
-  const shooting = fallbackTeam?.metrics.shooting ?? Number((50 + winPct * 9 + powerBoost * 0.18).toFixed(1));
-  const rebounding = fallbackTeam?.metrics.rebounding ?? Number((46 + winPct * 8 + powerBoost * 0.14).toFixed(1));
-  const ballControl = fallbackTeam?.metrics.ballControl ?? Number((17 - winPct * 4 - powerBoost * 0.08).toFixed(1));
+  const offense =
+    fallbackTeam?.metrics.offense ??
+    Number((108 + winPct * 18 + powerBoost * 0.35).toFixed(1));
+  const defense =
+    fallbackTeam?.metrics.defense ??
+    Number((101 - winPct * 10 - powerBoost * 0.22).toFixed(1));
+  const shooting =
+    fallbackTeam?.metrics.shooting ??
+    Number((50 + winPct * 9 + powerBoost * 0.18).toFixed(1));
+  const rebounding =
+    fallbackTeam?.metrics.rebounding ??
+    Number((46 + winPct * 8 + powerBoost * 0.14).toFixed(1));
+  const ballControl =
+    fallbackTeam?.metrics.ballControl ??
+    Number((17 - winPct * 4 - powerBoost * 0.08).toFixed(1));
   const sos = fallbackTeam?.metrics.sos ?? Math.round(68 + powerBoost * 0.9 + winPct * 12);
-  const recentForm = fallbackTeam?.metrics.recentForm ?? Math.round(66 + winPct * 22 + powerBoost * 0.5);
+  const recentForm =
+    fallbackTeam?.metrics.recentForm ?? Math.round(66 + winPct * 22 + powerBoost * 0.5);
   const homeAway = fallbackTeam?.metrics.homeAway ?? Math.round(64 + winPct * 18);
-  const atsTrends = fallbackTeam?.metrics.atsTrends ?? Math.round(52 + winPct * 14 + powerBoost * 0.25);
+  const atsTrends =
+    fallbackTeam?.metrics.atsTrends ?? Math.round(52 + winPct * 14 + powerBoost * 0.25);
 
   return {
-    id: fallbackTeam?.id ?? toSlug(name),
-    name,
-    shortName: fallbackTeam?.shortName ?? name.split(" ").map((part) => part[0]).join("").slice(0, 4).toUpperCase(),
+    id: fallbackTeam?.id ?? identity.id ?? createTeamSlug(rawName),
+    name: fallbackTeam?.name ?? identity.displayName,
+    shortName:
+      fallbackTeam?.shortName ??
+      identity.displayName
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 4)
+        .toUpperCase(),
     conference: conference ?? fallbackTeam?.conference ?? "Division I",
     record: record ?? fallbackTeam?.record ?? `${parsedRecord.wins}-${parsedRecord.losses}`,
     rank: rankValue,
     seed: fallbackTeam?.seed,
-    isTournamentTeam: fallbackTeam?.isTournamentTeam ?? rankValue <= 68,
+    isTournamentTeam:
+      fallbackTeam?.isTournamentTeam ?? tournamentFieldTeamIds.includes(identity.id),
     logo: logo ?? fallbackTeam?.logo ?? null,
     stats: {
       adjustedOffense: fallbackTeam?.stats.adjustedOffense ?? offense,
       adjustedDefense: fallbackTeam?.stats.adjustedDefense ?? defense,
       tempo: fallbackTeam?.stats.tempo ?? Number((66 + winPct * 6).toFixed(1)),
-      effectiveFieldGoalPct: fallbackTeam?.stats.effectiveFieldGoalPct ?? Number((51 + winPct * 7).toFixed(1)),
-      turnoverRate: fallbackTeam?.stats.turnoverRate ?? Number((ballControl + 1.2).toFixed(1)),
+      effectiveFieldGoalPct:
+        fallbackTeam?.stats.effectiveFieldGoalPct ?? Number((51 + winPct * 7).toFixed(1)),
+      turnoverRate:
+        fallbackTeam?.stats.turnoverRate ?? Number((ballControl + 1.2).toFixed(1)),
       reboundRate: fallbackTeam?.stats.reboundRate ?? rebounding,
-      freeThrowRate: fallbackTeam?.stats.freeThrowRate ?? Number((30 + winPct * 7).toFixed(1)),
+      freeThrowRate:
+        fallbackTeam?.stats.freeThrowRate ?? Number((30 + winPct * 7).toFixed(1)),
     },
     metrics: {
       offense,
@@ -243,65 +238,65 @@ export function adaptNcaaTeams({
   gamesPayload?: unknown;
   fallbackTeams?: Team[];
 }) {
-  const fallbackByName = new Map(
-    fallbackTeams.map((team) => [normalizeTeamName(team.name), team]),
+  const fallbackById = new Map(
+    fallbackTeams.map((team) => [getCanonicalTeamIdentity(team.name).id, team]),
   );
   const rankingEntries = extractRankingEntries(rankingsPayload);
   const gameEntries = extractGameEntries(gamesPayload);
   const liveTeams = new Map<string, Team>();
 
   for (const entry of rankingEntries) {
-    const name = normalizeTeamName(
-      findFirstString(entry, [
-        ["team"],
-        ["school"],
-        ["name"],
-        ["teamName"],
-      ]) ?? "",
-    );
+    const rawName =
+      findFirstString(entry, [["team"], ["school"], ["name"], ["teamName"]]) ?? "";
 
-    if (!name) {
+    if (!rawName) {
       continue;
     }
 
-    const fallbackTeam = fallbackByName.get(name);
+    const match = matchTeamName(rawName, fallbackTeams, "ncaa-rankings");
+    const fallbackTeam = match.matchedTeam ?? fallbackById.get(match.canonicalId);
     const team = buildDerivedTeam(
-      name,
+      rawName,
       findFirstNumber(entry, [["rank"], ["currentRank"], ["position"]]),
       findFirstString(entry, [["record"], ["stats", "record"]]),
       findFirstString(entry, [["conference"], ["conferenceName"]]),
       findFirstString(entry, [["logo"], ["logos", "0", "href"]]),
-      fallbackTeam,
+      fallbackTeam ?? undefined,
     );
-    liveTeams.set(name, team);
+    liveTeams.set(team.id, team);
   }
 
   for (const entry of gameEntries) {
-    const names = [
-      normalizeTeamName(
-        findFirstString(entry, [
-          ["away", "name"],
-          ["away", "team"],
-          ["away_team"],
-          ["competitions", "0", "competitors", "1", "team", "displayName"],
-        ]) ?? "",
-      ),
-      normalizeTeamName(
-        findFirstString(entry, [
-          ["home", "name"],
-          ["home", "team"],
-          ["home_team"],
-          ["competitions", "0", "competitors", "0", "team", "displayName"],
-        ]) ?? "",
-      ),
+    const rawNames = [
+      findFirstString(entry, [
+        ["away", "name"],
+        ["away", "team"],
+        ["away_team"],
+        ["competitions", "0", "competitors", "1", "team", "displayName"],
+      ]) ?? "",
+      findFirstString(entry, [
+        ["home", "name"],
+        ["home", "team"],
+        ["home_team"],
+        ["competitions", "0", "competitors", "0", "team", "displayName"],
+      ]) ?? "",
     ].filter(Boolean);
 
-    for (const name of names) {
-      if (!liveTeams.has(name)) {
-        const fallbackTeam = fallbackByName.get(name);
+    for (const rawName of rawNames) {
+      const match = matchTeamName(rawName, fallbackTeams, "ncaa-games");
+      const fallbackTeam = match.matchedTeam ?? fallbackById.get(match.canonicalId);
+
+      if (!liveTeams.has(match.canonicalId)) {
         liveTeams.set(
-          name,
-          buildDerivedTeam(name, fallbackTeam?.rank, fallbackTeam?.record, fallbackTeam?.conference, fallbackTeam?.logo ?? undefined, fallbackTeam),
+          match.canonicalId,
+          buildDerivedTeam(
+            rawName,
+            fallbackTeam?.rank,
+            fallbackTeam?.record,
+            fallbackTeam?.conference,
+            fallbackTeam?.logo ?? undefined,
+            fallbackTeam ?? undefined,
+          ),
         );
       }
     }
@@ -321,41 +316,38 @@ export function adaptNcaaGames(payload: unknown, teams: Team[], fallbackGames: G
     return fallbackGames;
   }
 
-  const normalizedTeams = new Map(teams.map((team) => [normalizeTeamName(team.name), team]));
   const adaptedGames = entries
     .map<Game | null>((entry, index) => {
-      const homeTeamName = normalizeTeamName(
+      const rawHomeTeam =
         findFirstString(entry, [
           ["home", "name"],
           ["home", "team"],
           ["home_team"],
           ["competitions", "0", "competitors", "0", "team", "displayName"],
-        ]) ?? "",
-      );
-      const awayTeamName = normalizeTeamName(
+        ]) ?? "";
+      const rawAwayTeam =
         findFirstString(entry, [
           ["away", "name"],
           ["away", "team"],
           ["away_team"],
           ["competitions", "0", "competitors", "1", "team", "displayName"],
-        ]) ?? "",
-      );
+        ]) ?? "";
 
-      if (!homeTeamName || !awayTeamName) {
+      if (!rawHomeTeam || !rawAwayTeam) {
         return null;
       }
 
-      const homeTeam = normalizedTeams.get(homeTeamName);
-      const awayTeam = normalizedTeams.get(awayTeamName);
+      const homeMatch = matchTeamName(rawHomeTeam, teams, "ncaa-games");
+      const awayMatch = matchTeamName(rawAwayTeam, teams, "ncaa-games");
 
       return {
         id:
           findFirstString(entry, [["id"], ["game", "id"], ["contestId"]]) ??
           `live-game-${index + 1}`,
-        homeTeam: homeTeam?.name ?? homeTeamName,
-        awayTeam: awayTeam?.name ?? awayTeamName,
-        homeSeed: homeTeam?.seed,
-        awaySeed: awayTeam?.seed,
+        homeTeam: homeMatch.matchedTeam?.name ?? homeMatch.canonicalName,
+        awayTeam: awayMatch.matchedTeam?.name ?? awayMatch.canonicalName,
+        homeSeed: homeMatch.matchedTeam?.seed,
+        awaySeed: awayMatch.matchedTeam?.seed,
         startTime: formatStartTime(
           findFirstString(entry, [["startTime"], ["gameDate"], ["date"], ["start_date"]]),
         ),
@@ -368,9 +360,9 @@ export function adaptNcaaGames(payload: unknown, teams: Team[], fallbackGames: G
         neutralSite: Boolean(
           entry.neutralSite ??
             entry.neutral_site ??
-            findFirstString(entry, [["venue", "neutralSite"]]) === "true",
+            (findFirstString(entry, [["venue", "neutralSite"]]) === "true"),
         ),
-      } satisfies Game;
+      };
     })
     .filter((game): game is Game => Boolean(game));
 

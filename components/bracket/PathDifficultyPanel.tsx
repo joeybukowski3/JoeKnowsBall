@@ -1,17 +1,29 @@
 import { Badge } from "@/components/shared/Badge";
 import { TeamChip } from "@/components/shared/TeamChip";
-import type { PathDifficultyRow, ResolvedBracketGame, Team } from "@/lib/types";
+import type {
+  PathDifficultyRow,
+  ResolvedBracketGame,
+  Team,
+  TournamentFieldEntry,
+} from "@/lib/types";
 
 type PathDifficultyPanelProps = {
   paths: PathDifficultyRow[];
   champion: Team | null;
   resolvedGames: ResolvedBracketGame[];
+  tournamentSummary?: {
+    teamCount: number;
+    regionLeaders: Array<TournamentFieldEntry | undefined>;
+    strongestRegion?: { region: string; averageModelScore: number };
+    weakestRegion?: { region: string; averageModelScore: number };
+  };
 };
 
 export function PathDifficultyPanel({
   paths,
   champion,
   resolvedGames,
+  tournamentSummary,
 }: PathDifficultyPanelProps) {
   const easiest = [...paths]
     .sort((left, right) => left.pathDifficulty - right.pathDifficulty)
@@ -44,6 +56,63 @@ export function PathDifficultyPanel({
           )}
         </div>
       </section>
+
+      {tournamentSummary ? (
+        <section className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
+              Tournament Summary
+            </h3>
+            <Badge tone="sky">{tournamentSummary.teamCount} teams</Badge>
+          </div>
+          <div className="mt-4 space-y-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Region leaders
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {tournamentSummary.regionLeaders.map((entry) =>
+                  entry ? (
+                    <Badge key={`${entry.region}-${entry.teamId}`} tone="neutral">
+                      {entry.region}: {entry.displayName}
+                    </Badge>
+                  ) : null,
+                )}
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/8 bg-slate-950/55 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  Strongest region
+                </p>
+                <p className="mt-2 text-base font-semibold text-white">
+                  {tournamentSummary.strongestRegion?.region ?? "TBD"}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">
+                  Avg score{" "}
+                  {tournamentSummary.strongestRegion
+                    ? tournamentSummary.strongestRegion.averageModelScore.toFixed(1)
+                    : "--"}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-slate-950/55 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  Weakest region
+                </p>
+                <p className="mt-2 text-base font-semibold text-white">
+                  {tournamentSummary.weakestRegion?.region ?? "TBD"}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">
+                  Avg score{" "}
+                  {tournamentSummary.weakestRegion
+                    ? tournamentSummary.weakestRegion.averageModelScore.toFixed(1)
+                    : "--"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
         <div className="flex items-center justify-between gap-3">

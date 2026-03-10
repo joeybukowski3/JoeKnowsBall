@@ -5,9 +5,17 @@ import { BracketBoard } from "@/components/bracket/BracketBoard";
 import { BracketControls } from "@/components/bracket/BracketControls";
 import { PathDifficultyPanel } from "@/components/bracket/PathDifficultyPanel";
 import { TournamentSimulationPanel } from "@/components/bracket/TournamentSimulationPanel";
+import { ChampionProbabilities } from "@/components/insights/ChampionProbabilities";
+import { EasiestPaths } from "@/components/insights/EasiestPaths";
+import { HardestPaths } from "@/components/insights/HardestPaths";
+import { InsightCard } from "@/components/insights/InsightCard";
+import { InsightSection } from "@/components/insights/InsightSection";
+import { UpsetWatch } from "@/components/insights/UpsetWatch";
+import { Badge } from "@/components/shared/Badge";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import { TeamChip } from "@/components/shared/TeamChip";
+import { activeTournamentField } from "@/lib/data/tournamentField";
 import type {
   BracketGameNode,
   BracketMode,
@@ -17,7 +25,19 @@ import type {
   Team,
   TournamentSimulationResult,
 } from "@/lib/types";
+import {
+  buildBracketUpsetWatch,
+  buildChampionProbabilities,
+  buildEasiestPaths,
+  buildFinalFourProbabilities,
+  buildHardestPaths,
+} from "@/lib/utils/insightBuilders";
 import { pathDifficulty } from "@/lib/utils/pathDifficulty";
+import {
+  buildTournamentSummary,
+  logTournamentFieldWarnings,
+  validateTournamentField,
+} from "@/lib/utils/tournamentFieldManager";
 import {
   autoFillBracket,
   buildBracketRankingRows,
@@ -53,8 +73,7 @@ export function BracketBuilderDashboard({
   const [simulationResult, setSimulationResult] =
     useState<TournamentSimulationResult | null>(null);
 
-  const selectedPreset =
-    presets.find((preset) => preset.id === presetId) ?? presets[0];
+  const selectedPreset = presets.find((preset) => preset.id === presetId) ?? presets[0];
   const rankingRows = buildBracketRankingRows(teams, selectedPreset);
   const resolvedGames = resolveBracket(bracketGames, teams, rankingRows, picks);
   const rounds = Object.fromEntries(
@@ -72,6 +91,22 @@ export function BracketBuilderDashboard({
     championGame?.winnerTeamId
       ? teams.find((team) => team.id === championGame.winnerTeamId) ?? null
       : paths[0]?.team ?? null;
+  const baselineSimulation = tournamentSimulator({
+    teams,
+    bracketGames,
+    preset: selectedPreset,
+    iterations: 2000,
+    lockedPicks: picks,
+  });
+  const displaySimulation = simulationResult ?? baselineSimulation;
+  const easiestPaths = buildEasiestPaths(paths, 5);
+  const hardestPaths = buildHardestPaths(paths, 5);
+  const championProbabilities = buildChampionProbabilities(displaySimulation, 5);
+  const finalFourProbabilities = buildFinalFourProbabilities(displaySimulation, 4);
+  const bracketUpsets = buildBracketUpsetWatch(upsetHotspots, 5);
+  const fieldValidation = validateTournamentField(activeTournamentField);
+  const tournamentSummary = buildTournamentSummary(activeTournamentField, teams);
+  logTournamentFieldWarnings(fieldValidation);
 
   function handlePick(gameId: string, teamId: string) {
     if (mode !== "manual") {
@@ -119,8 +154,12 @@ export function BracketBuilderDashboard({
       <PageHeader
         eyebrow="Bracket Builder"
         title="Interactive tournament bracket"
-        description="Build the field manually or auto-advance teams using the active ranking preset, then compare path difficulty and simulation output against the current board."
-      />
+        description="Build the field manually or auto-advance teams using the active ranking preset, then compare path difficulty, upset spots, and simulation output against the current board."
+      >
+        <Badge tone={fieldValidation.isValid ? "emerald" : "amber"}>
+          {fieldValidation.isValid ? "Field Validated" : "Field Needs Review"}
+        </Badge>
+      </PageHeader>
 
       <BracketControls
         mode={mode}
@@ -131,6 +170,66 @@ export function BracketBuilderDashboard({
         onAutoFill={handleAutoFill}
         onReset={handleReset}
       />
+
+      <InsightSection
+        eyebrow="Bracket Insights"
+        title="Tournament outlook at a glance"
+        description="Simulation and path-difficulty summaries that update with the current preset and board state."
+      >
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InsightCard
+              eyebrow="Champion"
+              title={displaySimulation.champion?.name ?? "Run a simulation"}
+              value={
+                championProbabilities[0]
+                  ? `${(championProbabilities[0].champion * 100).toFixed(1)}%`
+                  : "--"
+              }
+              tone="sky"
+              description="Most likely champion from the current board state."
+            />
+            <InsightCard
+              eyebrow="Final Four"
+              title={finalFourProbabilities[0]?.team.name ?? "Pending"}
+              value={
+                finalFourProbabilities[0]
+                  ? `${(finalFourProbabilities[0].finalFour * 100).toFixed(1)}%`
+                  : "--"
+              }
+              tone="emerald"
+              description="Best Final Four probability in the current simulation run."
+            />
+            <InsightCard
+              eyebrow="Easiest Path"
+              title={easiestPaths[0]?.team.name ?? "Pending"}
+              value={easiestPaths[0] ? easiestPaths[0].pathDifficulty.toFixed(1) : "--"}
+              tone="emerald"
+              description="Lowest cumulative path-difficulty score."
+            />
+            <InsightCard
+              eyebrow="Upset Hotspot"
+              title={
+                bracketUpsets[0]
+                  ? `${bracketUpsets[0].teamA.team?.name ?? "TBD"} vs ${bracketUpsets[0].teamB.team?.name ?? "TBD"}`
+                  : "No hotspot"
+              }
+              value={bracketUpsets[0]?.upsetRisk ?? "--"}
+              tone="amber"
+              description="Highest-risk upset node on the active board."
+            />
+          </div>
+          <ChampionProbabilities rows={championProbabilities} title="Most Likely Champions" />
+          <ChampionProbabilities
+            rows={finalFourProbabilities}
+            title="Most Likely Final Four Teams"
+            mode="finalFour"
+          />
+          <EasiestPaths rows={easiestPaths} />
+          <HardestPaths rows={hardestPaths} />
+          <UpsetWatch bracketGames={bracketUpsets} title="Upset Hotspots" />
+        </div>
+      </InsightSection>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.72fr)_380px]">
         <Panel
@@ -145,6 +244,7 @@ export function BracketBuilderDashboard({
           paths={paths}
           champion={champion}
           resolvedGames={resolvedGames}
+          tournamentSummary={tournamentSummary}
         />
       </div>
 

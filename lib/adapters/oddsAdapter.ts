@@ -1,6 +1,6 @@
-import { normalizeTeamName } from "@/lib/adapters/ncaaAdapter";
-import type { GameOddsLine, Odds } from "@/lib/types";
+import type { GameOddsLine, Odds, Team } from "@/lib/types";
 import { americanToImpliedProbability } from "@/lib/utils/oddsCalculator";
+import { matchTeamName } from "@/lib/utils/teamMatcher";
 
 type GenericRecord = Record<string, unknown>;
 
@@ -24,12 +24,7 @@ function parseString(value: unknown) {
 }
 
 function getBookName(entry: GenericRecord) {
-  return (
-    parseString(entry.title) ??
-    parseString(entry.key) ??
-    parseString(entry.name) ??
-    "Market"
-  );
+  return parseString(entry.title) ?? parseString(entry.key) ?? parseString(entry.name) ?? "Market";
 }
 
 function extractMarkets(entry: GenericRecord) {
@@ -51,32 +46,30 @@ function pickBookmaker(event: GenericRecord) {
     ? event.bookmakers.filter((book): book is GenericRecord => Boolean(book && typeof book === "object"))
     : [];
 
-  return (
-    bookmakers.sort((left, right) => {
-      const leftRank = BOOK_PRIORITY.indexOf(getBookName(left));
-      const rightRank = BOOK_PRIORITY.indexOf(getBookName(right));
-      return (leftRank === -1 ? 999 : leftRank) - (rightRank === -1 ? 999 : rightRank);
-    })[0] ?? null
-  );
+  return bookmakers.sort((left, right) => {
+    const leftRank = BOOK_PRIORITY.indexOf(getBookName(left));
+    const rightRank = BOOK_PRIORITY.indexOf(getBookName(right));
+    return (leftRank === -1 ? 999 : leftRank) - (rightRank === -1 ? 999 : rightRank);
+  })[0] ?? null;
 }
 
 function getMarket(bookmaker: GenericRecord, key: string) {
   return extractMarkets(bookmaker).find((market) => parseString(market.key) === key) ?? null;
 }
 
-export function adaptOddsToGameLines(payload: unknown) {
+export function adaptOddsToGameLines(payload: unknown, teams: Team[] = []) {
   if (!Array.isArray(payload)) {
     return [];
   }
 
   return payload
     .filter((entry): entry is GenericRecord => Boolean(entry && typeof entry === "object"))
-    .map((event, index) => {
-      const homeTeam = normalizeTeamName(parseString(event.home_team) ?? "");
-      const awayTeam = normalizeTeamName(parseString(event.away_team) ?? "");
+    .map<GameOddsLine | null>((event, index) => {
+      const homeMatch = matchTeamName(parseString(event.home_team) ?? "", teams, "odds-home");
+      const awayMatch = matchTeamName(parseString(event.away_team) ?? "", teams, "odds-away");
       const bookmaker = pickBookmaker(event);
 
-      if (!homeTeam || !awayTeam || !bookmaker) {
+      if (!homeMatch.canonicalName || !awayMatch.canonicalName || !bookmaker) {
         return null;
       }
 
@@ -85,26 +78,42 @@ export function adaptOddsToGameLines(payload: unknown) {
       const spreadMarket = getMarket(bookmaker, "spreads");
       const h2hOutcomes = h2hMarket ? extractOutcomes(h2hMarket) : [];
       const spreadOutcomes = spreadMarket ? extractOutcomes(spreadMarket) : [];
+
       const homeMoneyline =
-        parseNumber(h2hOutcomes.find((outcome) => normalizeTeamName(parseString(outcome.name) ?? "") === homeTeam)?.price) ??
-        -110;
+        parseNumber(
+          h2hOutcomes.find(
+            (outcome) =>
+              matchTeamName(parseString(outcome.name) ?? "", teams, "odds-h2h").canonicalId ===
+              homeMatch.canonicalId,
+          )?.price,
+        ) ?? -110;
       const awayMoneyline =
-        parseNumber(h2hOutcomes.find((outcome) => normalizeTeamName(parseString(outcome.name) ?? "") === awayTeam)?.price) ??
-        -110;
+        parseNumber(
+          h2hOutcomes.find(
+            (outcome) =>
+              matchTeamName(parseString(outcome.name) ?? "", teams, "odds-h2h").canonicalId ===
+              awayMatch.canonicalId,
+          )?.price,
+        ) ?? -110;
       const homeSpread =
-        parseNumber(spreadOutcomes.find((outcome) => normalizeTeamName(parseString(outcome.name) ?? "") === homeTeam)?.point) ??
-        0;
+        parseNumber(
+          spreadOutcomes.find(
+            (outcome) =>
+              matchTeamName(parseString(outcome.name) ?? "", teams, "odds-spread").canonicalId ===
+              homeMatch.canonicalId,
+          )?.point,
+        ) ?? 0;
 
       return {
         id: parseString(event.id) ?? `odds-game-${index + 1}`,
-        homeTeam,
-        awayTeam,
+        homeTeam: homeMatch.matchedTeam?.name ?? homeMatch.canonicalName,
+        awayTeam: awayMatch.matchedTeam?.name ?? awayMatch.canonicalName,
         book,
         commenceTime: parseString(event.commence_time) ?? new Date().toISOString(),
         spread: homeSpread,
         moneylineHome: homeMoneyline,
         moneylineAway: awayMoneyline,
-      } satisfies GameOddsLine;
+      };
     })
     .filter((line): line is GameOddsLine => Boolean(line));
 }

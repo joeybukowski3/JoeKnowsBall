@@ -29,7 +29,14 @@ export function BracketGame({ game, mode, onPick }: BracketGameProps) {
   return (
     <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-3 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{game.region}</p>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            {game.region}
+          </p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+            {game.round}
+          </p>
+        </div>
         <Badge tone={getRiskTone(game.upsetRisk)}>{game.upsetRisk} risk</Badge>
       </div>
       <div className="space-y-2">

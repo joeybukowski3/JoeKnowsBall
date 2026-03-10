@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/shared/Badge";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import { TeamChip } from "@/components/shared/TeamChip";
 import { getTeamMeta } from "@/lib/data/teamMeta";
 import { rankingCategories } from "@/lib/data";
@@ -207,6 +208,7 @@ export function TeamProfilePage({
                 <p className="mt-2 text-2xl font-semibold text-white">
                   {rankingRow?.overallScore.toFixed(1) ?? "--"}
                 </p>
+                {rankingRow ? <StrengthBar value={rankingRow.overallScore} className="mt-3" /> : null}
               </div>
               <div className="rounded-[24px] border border-white/10 bg-white/[0.05] p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Tournament</p>
@@ -251,7 +253,19 @@ export function TeamProfilePage({
                       {category.label}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-slate-300">
-                      {rankingRow?.categoryScores[category.key].raw.toFixed(1) ?? "--"}
+                      {rankingRow ? (
+                        <div className="ml-auto flex min-w-[138px] items-center justify-end gap-3">
+                          <div className="w-20">
+                            <StrengthBar
+                              value={rankingRow.categoryScores[category.key].normalized * 100}
+                              compact
+                            />
+                          </div>
+                          <span>{rankingRow.categoryScores[category.key].raw.toFixed(1)}</span>
+                        </div>
+                      ) : (
+                        "--"
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-sky-200">
                       {categoryRankMap?.[category.key] ? `#${categoryRankMap[category.key]}` : "--"}
@@ -282,12 +296,18 @@ export function TeamProfilePage({
                   <p className="mt-2 text-lg font-semibold text-white">
                     {impliedProbability !== null ? `${(impliedProbability * 100).toFixed(1)}%` : "--"}
                   </p>
+                  {impliedProbability !== null ? (
+                    <StrengthBar value={impliedProbability * 100} className="mt-3" compact tone="neutral" />
+                  ) : null}
                 </div>
                 <div className="rounded-[20px] border border-white/10 bg-white/[0.05] p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Model</p>
                   <p className="mt-2 text-lg font-semibold text-white">
                     {modelTitleProbability !== null ? `${(modelTitleProbability * 100).toFixed(1)}%` : "--"}
                   </p>
+                  {modelTitleProbability !== null ? (
+                    <StrengthBar value={modelTitleProbability * 100} className="mt-3" compact tone="positive" />
+                  ) : null}
                 </div>
               </div>
               <Badge
@@ -332,6 +352,7 @@ export function TeamProfilePage({
                   <p className="mt-2 text-2xl font-semibold text-white">
                     {`${((value as number) * 100).toFixed(1)}%`}
                   </p>
+                  <StrengthBar value={(value as number) * 100} className="mt-3" compact tone="positive" />
                 </div>
               ))}
             </div>
@@ -355,18 +376,23 @@ export function TeamProfilePage({
                   <p className="mt-2 text-2xl font-semibold text-white">
                     {pathRow.pathDifficulty.toFixed(1)}
                   </p>
+                  <StrengthBar value={pathRow.pathDifficulty} className="mt-3" compact tone="neutral" />
                 </div>
                 <div className="rounded-[22px] border border-white/10 bg-white/[0.05] p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Adjusted</p>
                   <p className="mt-2 text-2xl font-semibold text-white">
                     {pathRow.adjustedTournamentScore.toFixed(1)}
                   </p>
+                  <StrengthBar value={pathRow.adjustedTournamentScore} className="mt-3" compact />
                 </div>
                 <div className="rounded-[22px] border border-white/10 bg-white/[0.05] p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Region strength</p>
                   <p className="mt-2 text-2xl font-semibold text-white">
                     {regionStrength !== null ? regionStrength.toFixed(1) : "--"}
                   </p>
+                  {regionStrength !== null ? (
+                    <StrengthBar value={regionStrength} className="mt-3" compact />
+                  ) : null}
                 </div>
               </div>
               <div className="overflow-hidden rounded-[24px] border border-white/10">

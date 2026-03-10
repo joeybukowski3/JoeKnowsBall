@@ -1,4 +1,5 @@
 import { Badge } from "@/components/shared/Badge";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import type { MatchupSummary, Team } from "@/lib/types";
 
 type MatchupTableProps = {
@@ -36,16 +37,24 @@ export function MatchupTable({ summary, teamA, teamB }: MatchupTableProps) {
                 <td className={`px-4 py-3 text-sm ${row.edge === "teamA" ? "font-semibold text-indigo-200" : "text-slate-300"}`}>
                   <div className="flex items-center gap-3">
                     <span className="min-w-[42px]">{formatValue(row.label, row.teamAValue)}</span>
-                    <div className="stat-bar h-2 w-full max-w-[110px]">
-                      <span style={{ width: `${Math.max(8, row.teamANormalized * 100)}%` }} />
+                    <div className="w-full max-w-[110px]">
+                      <StrengthBar
+                        value={row.teamANormalized * 100}
+                        compact
+                        tone={row.edge === "teamA" ? "primary" : "neutral"}
+                      />
                     </div>
                   </div>
                 </td>
                 <td className={`px-4 py-3 text-sm ${row.edge === "teamB" ? "font-semibold text-indigo-200" : "text-slate-300"}`}>
                   <div className="flex items-center gap-3">
                     <span className="min-w-[42px]">{formatValue(row.label, row.teamBValue)}</span>
-                    <div className="stat-bar h-2 w-full max-w-[110px]">
-                      <span style={{ width: `${Math.max(8, row.teamBNormalized * 100)}%` }} />
+                    <div className="w-full max-w-[110px]">
+                      <StrengthBar
+                        value={row.teamBNormalized * 100}
+                        compact
+                        tone={row.edge === "teamB" ? "primary" : "neutral"}
+                      />
                     </div>
                   </div>
                 </td>

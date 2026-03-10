@@ -1,5 +1,6 @@
 import { Badge } from "@/components/shared/Badge";
 import { Panel } from "@/components/shared/Panel";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import { TeamChip } from "@/components/shared/TeamChip";
 import type { BracketSummaryData } from "@/lib/types";
 
@@ -79,6 +80,9 @@ export function BracketSummaryPanel({ summary }: BracketSummaryPanelProps) {
           <p className="mt-2 text-sm font-semibold text-white">
             {summary.strongestRegion?.region ?? "Pending"}
           </p>
+          {summary.strongestRegion ? (
+            <StrengthBar value={summary.strongestRegion.score} className="mt-3" compact />
+          ) : null}
           <p className="mt-2 text-xs text-slate-400">
             Avg adjusted score {summary.strongestRegion?.score.toFixed(1) ?? "--"}
           </p>
@@ -91,6 +95,9 @@ export function BracketSummaryPanel({ summary }: BracketSummaryPanelProps) {
           <p className="mt-2 text-sm font-semibold text-white">
             {summary.weakestRegion?.region ?? "Pending"}
           </p>
+          {summary.weakestRegion ? (
+            <StrengthBar value={summary.weakestRegion.score} className="mt-3" compact tone="neutral" />
+          ) : null}
           <p className="mt-2 text-xs text-slate-400">
             Avg adjusted score {summary.weakestRegion?.score.toFixed(1) ?? "--"}
           </p>

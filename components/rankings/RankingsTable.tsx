@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/shared/Badge";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import { TeamChip } from "@/components/shared/TeamChip";
 import type { RankingResultRow } from "@/lib/types";
 
@@ -50,6 +51,17 @@ function getSortIndicator(active: boolean, direction: RankingsSortState["directi
   return direction === "asc" ? "↑" : "↓";
 }
 
+function renderCategoryCell(value: number, normalized: number, decimals = 1) {
+  return (
+    <div className="ml-auto flex min-w-[120px] items-center justify-end gap-3">
+      <div className="w-16">
+        <StrengthBar value={normalized * 100} compact />
+      </div>
+      <span>{value.toFixed(decimals)}</span>
+    </div>
+  );
+}
+
 export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
   return (
     <div className="data-table-wrap">
@@ -80,8 +92,6 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
           <tbody className="divide-y divide-white/8 bg-transparent">
             {rows.map((row) => {
               const badgeTone = row.valueLabel === "Strong" ? "emerald" : row.valueLabel === "Watch" ? "amber" : "neutral";
-              const scoreBar = Math.max(10, Math.min(100, row.overallScore));
-
               return (
                 <tr key={row.team.id} className="group hover:bg-white/[0.045]">
                   <td className="px-4 py-3 text-sm font-semibold text-white">
@@ -93,18 +103,30 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                   <td className="px-4 py-3 text-sm text-slate-300">{row.team.conference}</td>
                   <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-200">
                     <div className="flex min-w-[110px] items-center justify-end gap-3">
-                      <div className="stat-bar h-2 w-16">
-                        <span style={{ width: `${scoreBar}%` }} />
+                      <div className="w-16">
+                        <StrengthBar value={row.overallScore} compact />
                       </div>
                       <span>{row.overallScore.toFixed(1)}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.offense.raw.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.defense.raw.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.shooting.raw.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.rebounding.raw.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.sos.raw.toFixed(0)}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.recentForm.raw.toFixed(0)}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.offense.raw, row.categoryScores.offense.normalized)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.defense.raw, row.categoryScores.defense.normalized)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.shooting.raw, row.categoryScores.shooting.normalized)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.rebounding.raw, row.categoryScores.rebounding.normalized)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.sos.raw, row.categoryScores.sos.normalized, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {renderCategoryCell(row.categoryScores.recentForm.raw, row.categoryScores.recentForm.normalized, 0)}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <Badge tone={badgeTone}>{row.valueLabel}</Badge>
                   </td>

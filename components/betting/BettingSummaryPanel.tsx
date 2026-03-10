@@ -40,30 +40,46 @@ export function BettingSummaryPanel({
             ? `${(strongestMoneyline.moneylineEdge * 100).toFixed(1)}%`
             : "--"
         }
+        strengthValue={strongestMoneyline ? Math.abs(strongestMoneyline.moneylineEdge) * 1000 : null}
+        tone="positive"
         description="Largest model edge versus the implied moneyline on the filtered slate."
       />
       <ValueCard
         eyebrow="Spread"
         title={strongestSpread?.matchup ?? "No edge"}
         value={strongestSpread ? `${strongestSpread.spreadEdge.toFixed(1)} pts` : "--"}
+        strengthValue={strongestSpread ? Math.abs(strongestSpread.spreadEdge) * 12 : null}
         description="Biggest gap between market spread and model spread estimate."
       />
       <ValueCard
         eyebrow="Futures"
         title={bestFutures?.team.name ?? "No futures value"}
         value={bestFutures ? `${(bestFutures.futuresEdge * 100).toFixed(1)}%` : "--"}
+        strengthValue={bestFutures ? Math.abs(bestFutures.futuresEdge) * 1000 : null}
+        tone="positive"
         description="Best title futures discrepancy after blending rankings, path, and simulation."
       />
       <ValueCard
         eyebrow="Volatility"
         title={mostUpsetProne?.matchup ?? "No hotspot"}
         value={mostUpsetProne?.upsetRisk ?? "--"}
+        strengthValue={
+          mostUpsetProne
+            ? mostUpsetProne.upsetRisk === "High"
+              ? 100
+              : mostUpsetProne.upsetRisk === "Medium"
+                ? 66
+                : 33
+            : null
+        }
+        tone="neutral"
         description="Most upset-prone matchup based on seed, rank, and model proximity."
       />
       <ValueCard
         eyebrow="Slate"
         title="Average model edge"
         value={`${(averageEdge * 100).toFixed(1)}%`}
+        strengthValue={Math.abs(averageEdge) * 1000}
         description="Mean moneyline edge across the currently visible game slate."
       />
     </div>

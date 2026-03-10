@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/shared/Badge";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import { TeamChip } from "@/components/shared/TeamChip";
 import { formatAmericanOdds } from "@/lib/utils/oddsCalculator";
 import type { GameValueRow } from "@/lib/types";
@@ -55,8 +56,8 @@ export function GameValueTable({ rows }: GameValueTableProps) {
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{formatAmericanOdds(row.sportsbookMoneyline)}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">
                   <div className="inline-flex min-w-[110px] items-center justify-end gap-3">
-                    <div className="stat-bar h-2 w-16">
-                      <span style={{ width: `${Math.max(8, row.modelWinProbability * 100)}%` }} />
+                    <div className="w-16">
+                      <StrengthBar value={row.modelWinProbability * 100} compact tone="positive" />
                     </div>
                     <span>{(row.modelWinProbability * 100).toFixed(1)}%</span>
                   </div>

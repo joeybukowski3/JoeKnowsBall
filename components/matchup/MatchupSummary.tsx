@@ -1,5 +1,6 @@
 import { getTeamMeta } from "@/lib/data/teamMeta";
 import { Badge } from "@/components/shared/Badge";
+import { StrengthBar } from "@/components/shared/StrengthBar";
 import { TeamChip } from "@/components/shared/TeamChip";
 import type { Game, MatchupSummary as MatchupSummaryType } from "@/lib/types";
 import { namesReferToSameTeam } from "@/lib/utils/teamMatcher";
@@ -31,16 +32,12 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
           <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Model Score</p>
             <p className="mt-2 text-3xl font-semibold text-white">{summary.teamA.overallScore.toFixed(1)}</p>
-            <div className="stat-bar mt-3 h-2">
-              <span style={{ width: `${Math.min(100, Math.max(12, summary.teamA.overallScore))}%` }} />
-            </div>
+            <StrengthBar value={summary.teamA.overallScore} className="mt-3" />
           </div>
           <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Win Probability</p>
             <p className="mt-2 text-3xl font-semibold text-white">{(summary.teamA.winProbability * 100).toFixed(1)}%</p>
-            <div className="stat-bar mt-3 h-2">
-              <span style={{ width: `${Math.max(6, summary.teamA.winProbability * 100)}%` }} />
-            </div>
+            <StrengthBar value={summary.teamA.winProbability * 100} className="mt-3" tone="positive" />
           </div>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
@@ -61,16 +58,12 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
           <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Model Score</p>
             <p className="mt-2 text-3xl font-semibold text-white">{summary.teamB.overallScore.toFixed(1)}</p>
-            <div className="stat-bar mt-3 h-2">
-              <span style={{ width: `${Math.min(100, Math.max(12, summary.teamB.overallScore))}%` }} />
-            </div>
+            <StrengthBar value={summary.teamB.overallScore} className="mt-3" />
           </div>
           <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Win Probability</p>
             <p className="mt-2 text-3xl font-semibold text-white">{(summary.teamB.winProbability * 100).toFixed(1)}%</p>
-            <div className="stat-bar mt-3 h-2">
-              <span style={{ width: `${Math.max(6, summary.teamB.winProbability * 100)}%` }} />
-            </div>
+            <StrengthBar value={summary.teamB.winProbability * 100} className="mt-3" tone="positive" />
           </div>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">

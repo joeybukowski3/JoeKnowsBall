@@ -87,7 +87,7 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                     <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs">#{row.rank}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <TeamChip name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />
+                    <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />
                   </td>
                   <td className="px-4 py-3 text-sm text-slate-300">{row.team.conference}</td>
                   <td className="px-4 py-3 text-right text-sm font-semibold text-sky-300">{row.overallScore.toFixed(1)}</td>

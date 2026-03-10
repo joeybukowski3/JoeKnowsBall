@@ -23,6 +23,7 @@ export function HardestPaths({
           description={`Adjusted score ${row.adjustedTournamentScore.toFixed(1)} • Base ${row.baseModelScore.toFixed(1)}`}
         >
           <TeamChip
+            team={row.team}
             name={row.team.name}
             shortName={row.team.shortName}
             subtitle={`Path score ${row.pathDifficulty.toFixed(1)}`}

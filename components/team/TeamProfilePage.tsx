@@ -188,6 +188,7 @@ export function TeamProfilePage({
             </div>
             <div className="flex items-center gap-4">
               <TeamChip
+                team={team}
                 name={team.name}
                 shortName={team.shortName}
                 subtitle={team.record}

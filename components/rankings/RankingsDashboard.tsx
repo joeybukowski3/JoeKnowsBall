@@ -385,7 +385,7 @@ export function RankingsDashboard({
                   className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <TeamChip name={entry.team.name} subtitle={entry.team.conference} compact />
+                    <TeamChip team={entry.team} name={entry.team.name} subtitle={entry.team.conference} compact />
                     <Badge tone="emerald">{(entry.futuresEdge * 100).toFixed(1)}%</Badge>
                   </div>
                   <div className="mt-4 flex items-center justify-between text-xs text-slate-400">

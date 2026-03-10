@@ -80,6 +80,7 @@ export function FuturesValueTable({
               <tr key={row.team.id} className="hover:bg-white/[0.04]">
                 <td className="px-4 py-3">
                   <TeamChip
+                    team={row.team}
                     name={row.team.name}
                     shortName={row.team.shortName}
                     subtitle={row.team.conference}

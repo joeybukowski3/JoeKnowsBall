@@ -84,6 +84,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
             >
               <div className="flex items-start justify-between gap-3">
                 <TeamChip
+                  team={participant.team}
                   name={participant.team?.name ?? "TBD"}
                   shortName={participant.team?.shortName}
                   subtitle={

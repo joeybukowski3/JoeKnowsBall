@@ -24,6 +24,7 @@ export function FuturesValueWatch({
           description={`Rank #${row.rank} • ${formatAmericanOdds(row.titleOdds)} title odds • Path ${row.pathDifficulty.toFixed(1)}`}
         >
           <TeamChip
+            team={row.team}
             name={row.team.name}
             shortName={row.team.shortName}
             subtitle={row.team.conference}

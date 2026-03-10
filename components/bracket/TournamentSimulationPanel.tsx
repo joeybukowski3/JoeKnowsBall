@@ -71,6 +71,7 @@ export function TournamentSimulationPanel({
         <div className="mt-4 rounded-[24px] border border-white/8 bg-slate-950/55 p-4">
           {result?.champion ? (
             <TeamChip
+              team={result.champion}
               name={result.champion.name}
               shortName={result.champion.shortName}
               subtitle={`${(((titleLeaders[0]?.champion ?? 0) * 100)).toFixed(1)}% title probability`}
@@ -97,6 +98,7 @@ export function TournamentSimulationPanel({
               className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-slate-950/55 p-3"
             >
               <TeamChip
+                team={row.team}
                 name={row.team.name}
                 shortName={row.team.shortName}
                 compact
@@ -128,6 +130,7 @@ export function TournamentSimulationPanel({
               className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-slate-950/55 p-3"
             >
               <TeamChip
+                team={row.team}
                 name={row.team.name}
                 shortName={row.team.shortName}
                 compact

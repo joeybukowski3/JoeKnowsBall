@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { TeamLogo } from "@/components/shared/TeamLogo";
 import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 import { getTeamMeta } from "@/lib/data/teamMeta";
+import type { Team } from "@/lib/types";
 
 type TeamChipProps = {
   name: string;
@@ -8,6 +10,7 @@ type TeamChipProps = {
   subtitle?: string;
   compact?: boolean;
   href?: string | null;
+  team?: Team | null;
 };
 
 export function TeamChip({
@@ -16,6 +19,7 @@ export function TeamChip({
   subtitle,
   compact = false,
   href,
+  team,
 }: TeamChipProps) {
   const meta = getTeamMeta(name);
   const teamHref =
@@ -26,17 +30,13 @@ export function TeamChip({
       : href;
   const content = (
     <>
-      <div
-        className={`flex shrink-0 items-center justify-center rounded-2xl border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] ${
-          compact ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
-        }`}
-        style={{
-          background: `linear-gradient(135deg, ${meta.primary}, ${meta.secondary})`,
-          color: meta.secondary === "#ffffff" ? "#0f172a" : "#ffffff",
-        }}
-      >
-        <span className="font-black tracking-[0.12em]">{shortName ?? meta.monogram}</span>
-      </div>
+      <TeamLogo
+        team={team}
+        name={name}
+        shortName={shortName}
+        meta={meta}
+        size={compact ? "sm" : "md"}
+      />
       <div className="min-w-0">
         <p className={`truncate font-semibold text-white ${compact ? "text-sm" : "text-base"}`}>
           {name}

@@ -47,6 +47,7 @@ export function PathDifficultyPanel({
         <div className="mt-4 rounded-[24px] border border-white/10 bg-slate-950/55 p-4">
           {champion ? (
             <TeamChip
+              team={champion}
               name={champion.name}
               shortName={champion.shortName}
               subtitle={`${champion.conference} • Current board leader`}
@@ -128,6 +129,7 @@ export function PathDifficultyPanel({
               className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-slate-950/55 p-3"
             >
               <TeamChip
+                team={row.team}
                 name={row.team.name}
                 shortName={row.team.shortName}
                 subtitle={`Base ${row.baseModelScore.toFixed(1)}`}
@@ -160,6 +162,7 @@ export function PathDifficultyPanel({
               className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-slate-950/55 p-3"
             >
               <TeamChip
+                team={row.team}
                 name={row.team.name}
                 shortName={row.team.shortName}
                 subtitle={`Adjusted ${row.adjustedTournamentScore.toFixed(1)}`}

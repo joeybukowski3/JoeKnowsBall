@@ -31,7 +31,7 @@ export function UpsetPredictorTable({ rows }: UpsetPredictorTableProps) {
                 </p>
               </td>
               <td className="px-4 py-3">
-                <TeamChip name={row.underdog.name} shortName={row.underdog.shortName} compact />
+                <TeamChip team={row.underdog} name={row.underdog.name} shortName={row.underdog.shortName} compact />
               </td>
               <td className="px-4 py-3 text-right text-sm font-semibold text-amber-200">
                 {(row.upsetProbability * 100).toFixed(1)}%

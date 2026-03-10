@@ -39,6 +39,7 @@ export function BracketComparisonPanel({ rows }: BracketComparisonPanelProps) {
                 </p>
                 <div className="mt-2">
                   <TeamChip
+                    team={row.champion}
                     name={row.champion?.name ?? "Pending"}
                     shortName={row.champion?.shortName}
                     compact
@@ -64,7 +65,7 @@ export function BracketComparisonPanel({ rows }: BracketComparisonPanelProps) {
                     key={`${row.presetId}-${team.id}`}
                     className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-2"
                   >
-                    <TeamChip name={team.name} shortName={team.shortName} compact />
+                    <TeamChip team={team} name={team.name} shortName={team.shortName} compact />
                   </div>
                 ))}
               </div>

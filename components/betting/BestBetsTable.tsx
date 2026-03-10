@@ -31,7 +31,7 @@ export function BestBetsTable({ rows, title }: BestBetsTableProps) {
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-white">{row.selection}</p>
                     <p className="text-xs text-slate-400">{row.matchup}</p>
-                    {row.team ? <TeamChip name={row.team.name} shortName={row.team.shortName} compact /> : null}
+                    {row.team ? <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} compact /> : null}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-200">

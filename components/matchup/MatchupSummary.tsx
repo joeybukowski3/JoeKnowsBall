@@ -22,7 +22,7 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
       <section className={`rounded-[26px] border p-5 shadow-[0_18px_60px_rgba(2,6,23,0.22)] ${getCardTone(summary.edgeTeam === "teamA")}`}>
         <div className="mb-4 h-1.5 rounded-full" style={{ background: `linear-gradient(90deg, ${metaA.primary}, ${metaA.secondary})` }} />
         <div className="flex items-start justify-between gap-3">
-          <TeamChip name={summary.teamA.team.name} shortName={summary.teamA.team.shortName} subtitle={summary.teamA.team.conference} />
+          <TeamChip team={summary.teamA.team} name={summary.teamA.team.name} shortName={summary.teamA.team.shortName} subtitle={summary.teamA.team.conference} />
           <Badge tone="sky">Rank #{summary.teamA.rank}</Badge>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">
@@ -46,7 +46,7 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
       <section className={`rounded-[26px] border p-5 shadow-[0_18px_60px_rgba(2,6,23,0.22)] ${getCardTone(summary.edgeTeam === "teamB")}`}>
         <div className="mb-4 h-1.5 rounded-full" style={{ background: `linear-gradient(90deg, ${metaB.primary}, ${metaB.secondary})` }} />
         <div className="flex items-start justify-between gap-3">
-          <TeamChip name={summary.teamB.team.name} shortName={summary.teamB.team.shortName} subtitle={summary.teamB.team.conference} />
+          <TeamChip team={summary.teamB.team} name={summary.teamB.team.name} shortName={summary.teamB.team.shortName} subtitle={summary.teamB.team.conference} />
           <Badge tone="sky">Rank #{summary.teamB.rank}</Badge>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">

@@ -46,7 +46,7 @@ export function GameValueTable({ rows }: GameValueTableProps) {
             {rows.map((row) => (
               <tr key={row.game.id} className="hover:bg-white/[0.04]">
                 <td className="px-4 py-3">
-                  <TeamChip name={row.awayTeam.name} shortName={row.awayTeam.shortName} subtitle={`at ${row.homeTeam.name}`} compact />
+                  <TeamChip team={row.awayTeam} name={row.awayTeam.name} shortName={row.awayTeam.shortName} subtitle={`at ${row.homeTeam.name}`} compact />
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-300">{row.game.startTime}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{row.sportsbookSpread > 0 ? `+${row.sportsbookSpread}` : row.sportsbookSpread}</td>

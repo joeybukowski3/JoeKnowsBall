@@ -340,7 +340,7 @@ export function BracketBuilderDashboard({
                 {paths.slice(0, 16).map((row) => (
                   <tr key={row.team.id} className="transition hover:bg-white/[0.04]">
                     <td className="px-4 py-3">
-                      <TeamChip name={row.team.name} shortName={row.team.shortName} compact />
+                      <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} compact />
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-slate-200">
                       {row.baseModelScore.toFixed(1)}

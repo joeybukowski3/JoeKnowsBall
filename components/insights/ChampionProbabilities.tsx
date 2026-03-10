@@ -32,6 +32,7 @@ export function ChampionProbabilities({
             }
           >
             <TeamChip
+              team={row.team}
               name={row.team.name}
               shortName={row.team.shortName}
               subtitle={row.team.conference}

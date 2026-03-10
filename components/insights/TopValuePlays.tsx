@@ -23,6 +23,7 @@ export function TopValuePlays({
           description={`${row.game.startTime} • Spread edge ${row.spreadEdge.toFixed(1)} • ${row.valueTier} value`}
         >
           <TeamChip
+            team={row.awayTeam}
             name={row.awayTeam.name}
             shortName={row.awayTeam.shortName}
             subtitle={`at ${row.homeTeam.name}`}

@@ -33,6 +33,7 @@ export function BracketSummaryPanel({ summary }: BracketSummaryPanelProps) {
           </p>
           <div className="mt-2">
             <TeamChip
+              team={summary.champion}
               name={summary.champion?.name ?? "Pending"}
               shortName={summary.champion?.shortName}
               compact
@@ -65,7 +66,7 @@ export function BracketSummaryPanel({ summary }: BracketSummaryPanelProps) {
                 key={team.id}
                 className="rounded-2xl border border-white/8 bg-slate-950/55 px-3 py-2"
               >
-                <TeamChip name={team.name} shortName={team.shortName} compact />
+                <TeamChip team={team} name={team.name} shortName={team.shortName} compact />
               </div>
             ))}
           </div>

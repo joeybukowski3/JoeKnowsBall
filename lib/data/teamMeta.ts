@@ -6,6 +6,8 @@ type TeamMeta = {
   monogram: string;
 };
 
+export type { TeamMeta };
+
 const teamMeta: Record<string, TeamMeta> = {
   Houston: { primary: "#c8102e", secondary: "#ffffff", monogram: "UH" },
   Connecticut: { primary: "#0b2343", secondary: "#ffffff", monogram: "UC" },

@@ -5,6 +5,7 @@ import { createTeamSlug } from "@/lib/utils/teamNameNormalizer";
 import { getCanonicalTeamIdentity, matchTeamName } from "@/lib/utils/teamMatcher";
 
 type GenericRecord = Record<string, unknown>;
+const missingLogoTeams = new Set<string>();
 
 function parseNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -74,6 +75,133 @@ function findFirstNumber(entry: GenericRecord, paths: string[][]) {
   return undefined;
 }
 
+function findFirstObject(entry: GenericRecord, paths: string[][]) {
+  for (const path of paths) {
+    let current: unknown = entry;
+    for (const key of path) {
+      if (!current || typeof current !== "object") {
+        current = undefined;
+        break;
+      }
+      current = (current as GenericRecord)[key];
+    }
+
+    if (current && typeof current === "object" && !Array.isArray(current)) {
+      return current as GenericRecord;
+    }
+  }
+
+  return undefined;
+}
+
+function findFirstArray(entry: GenericRecord, paths: string[][]) {
+  for (const path of paths) {
+    let current: unknown = entry;
+    for (const key of path) {
+      if (!current || typeof current !== "object") {
+        current = undefined;
+        break;
+      }
+      current = (current as GenericRecord)[key];
+    }
+
+    if (Array.isArray(current)) {
+      return current.filter(
+        (value): value is GenericRecord => Boolean(value && typeof value === "object"),
+      );
+    }
+  }
+
+  return [];
+}
+
+function normalizeLogoSet(entry: GenericRecord, fallbackTeam?: Team) {
+  const directLogo =
+    findFirstString(entry, [
+      ["logo"],
+      ["logoUrl"],
+      ["image"],
+      ["images", "default"],
+      ["brand", "logo"],
+    ]) ??
+    fallbackTeam?.logoUrl ??
+    fallbackTeam?.logo ??
+    null;
+
+  const logoObject =
+    findFirstObject(entry, [
+      ["logos", "0"],
+      ["team", "logos", "0"],
+      ["teamInfo", "logo"],
+      ["brand", "logos", "0"],
+    ]) ?? null;
+
+  const logoEntries = [
+    ...findFirstArray(entry, [["logos"], ["team", "logos"], ["brand", "logos"]]),
+  ];
+
+  const lightLogo =
+    findFirstString(entry, [
+      ["logoLightUrl"],
+      ["lightLogo"],
+      ["images", "light"],
+    ]) ??
+    findFirstString(
+      logoObject ?? {},
+      [["light"], ["href"], ["url"]],
+    ) ??
+    logoEntries.find((logo) =>
+      String(logo.rel ?? "")
+        .toLowerCase()
+        .includes("light"),
+    )?.href?.toString() ??
+    fallbackTeam?.logoLightUrl ??
+    directLogo;
+
+  const darkLogo =
+    findFirstString(entry, [
+      ["logoDarkUrl"],
+      ["darkLogo"],
+      ["images", "dark"],
+    ]) ??
+    logoEntries.find((logo) =>
+      String(logo.rel ?? "")
+        .toLowerCase()
+        .includes("dark"),
+    )?.href?.toString() ??
+    fallbackTeam?.logoDarkUrl ??
+    directLogo;
+
+  const primaryLogo =
+    directLogo ??
+    findFirstString(
+      logoObject ?? {},
+      [["href"], ["url"], ["default"]],
+    ) ??
+    logoEntries.map((logo) => findFirstString(logo, [["href"], ["url"]])).find(Boolean) ??
+    null;
+
+  return {
+    logoUrl: primaryLogo,
+    logoLightUrl: lightLogo ?? primaryLogo,
+    logoDarkUrl: darkLogo ?? primaryLogo,
+    hasLiveLogo: Boolean(primaryLogo),
+  };
+}
+
+function logMissingLogo(team: Team) {
+  if (process.env.NODE_ENV === "production" || team.hasLiveLogo) {
+    return;
+  }
+
+  if (missingLogoTeams.has(team.id)) {
+    return;
+  }
+
+  missingLogoTeams.add(team.id);
+  console.warn(`[teamLogos] missing live logo for ${team.name}`);
+}
+
 function findArray(payload: unknown, candidates: string[][]): GenericRecord[] {
   if (Array.isArray(payload)) {
     return payload.filter(
@@ -112,7 +240,7 @@ function buildDerivedTeam(
   rank: number | undefined,
   record: string | undefined,
   conference: string | undefined,
-  logo: string | undefined,
+  logoEntry: GenericRecord | undefined,
   fallbackTeam?: Team,
 ): Team {
   const identity = getCanonicalTeamIdentity(rawName);
@@ -142,6 +270,7 @@ function buildDerivedTeam(
   const homeAway = fallbackTeam?.metrics.homeAway ?? Math.round(64 + winPct * 18);
   const atsTrends =
     fallbackTeam?.metrics.atsTrends ?? Math.round(52 + winPct * 14 + powerBoost * 0.25);
+  const logos = normalizeLogoSet(logoEntry ?? {}, fallbackTeam);
 
   return {
     id: fallbackTeam?.id ?? identity.id ?? createTeamSlug(rawName),
@@ -160,7 +289,11 @@ function buildDerivedTeam(
     seed: fallbackTeam?.seed,
     isTournamentTeam:
       fallbackTeam?.isTournamentTeam ?? tournamentFieldTeamIds.includes(identity.id),
-    logo: logo ?? fallbackTeam?.logo ?? null,
+    logo: logos.logoUrl,
+    logoUrl: logos.logoUrl,
+    logoDarkUrl: logos.logoDarkUrl,
+    logoLightUrl: logos.logoLightUrl,
+    hasLiveLogo: logos.hasLiveLogo,
     stats: {
       adjustedOffense: fallbackTeam?.stats.adjustedOffense ?? offense,
       adjustedDefense: fallbackTeam?.stats.adjustedDefense ?? defense,
@@ -266,14 +399,21 @@ export function adaptNcaaTeams({
 
     const match = matchTeamName(rawName, fallbackTeams, "ncaa-rankings");
     const fallbackTeam = match.matchedTeam ?? fallbackById.get(match.canonicalId);
+    const logoEntry = {
+      ...entry,
+      logo: findFirstString(entry, [["logo"], ["logos", "0", "href"], ["logos", "0", "url"]]),
+      logoLightUrl: findFirstString(entry, [["logos", "0", "light"], ["images", "light"]]),
+      logoDarkUrl: findFirstString(entry, [["logos", "0", "dark"], ["images", "dark"]]),
+    };
     const team = buildDerivedTeam(
       rawName,
       findFirstNumber(entry, [["rank"], ["currentRank"], ["position"], ["RANK"]]),
       findFirstString(entry, [["record"], ["stats", "record"], ["RECORD"]]),
       findFirstString(entry, [["conference"], ["conferenceName"], ["conference"]]),
-      findFirstString(entry, [["logo"], ["logos", "0", "href"]]),
+      logoEntry,
       fallbackTeam ?? undefined,
     );
+    logMissingLogo(team);
     liveTeams.set(team.id, team);
   }
 
@@ -305,10 +445,23 @@ export function adaptNcaaTeams({
             fallbackTeam?.rank,
             fallbackTeam?.record,
             fallbackTeam?.conference,
-            fallbackTeam?.logo ?? undefined,
+            {
+              logo: findFirstString(entry, [
+                ["logo"],
+                ["team", "logo"],
+                ["home", "logo"],
+                ["away", "logo"],
+                ["competitions", "0", "competitors", "0", "team", "logos", "0", "href"],
+                ["competitions", "0", "competitors", "1", "team", "logos", "0", "href"],
+              ]),
+            },
             fallbackTeam ?? undefined,
           ),
         );
+        const createdTeam = liveTeams.get(match.canonicalId);
+        if (createdTeam) {
+          logMissingLogo(createdTeam);
+        }
       }
     }
   }

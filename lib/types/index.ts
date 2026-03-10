@@ -93,6 +93,10 @@ export type Team = {
   seed?: string;
   isTournamentTeam: boolean;
   logo?: string | null;
+  logoUrl?: string | null;
+  logoDarkUrl?: string | null;
+  logoLightUrl?: string | null;
+  hasLiveLogo?: boolean;
   stats: TeamStats;
   metrics: RankingMetrics;
   statProfile?: NormalizedTeamStats;

@@ -1,6 +1,6 @@
 import { adaptNcaaGames, adaptNcaaTeams } from "@/lib/adapters/ncaaAdapter";
 import { adaptOddsToGameLines, adaptOddsToTeamOdds } from "@/lib/adapters/oddsAdapter";
-import { adaptTeamStatsFeeds } from "@/lib/adapters/teamStatsAdapter";
+import { adaptTeamStatsFeeds, extractEspnTeamBranding } from "@/lib/adapters/teamStatsAdapter";
 import {
   fetchNcaaRankingsFeed,
   fetchNcaaScoreboardFeed,
@@ -29,6 +29,7 @@ import { buildTournamentTeams } from "@/lib/utils/buildTournamentBracket";
 import { mergeStatsIntoTeams } from "@/lib/utils/statMerge";
 import { getStatsStatus, logStatDiagnostics } from "@/lib/utils/statAvailability";
 import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
+import type { TeamStatsFeedBundle } from "@/lib/api/fetchTeamStats";
 
 function buildMockMeta(provider: string, fallbackReason: string): DataMeta {
   return {
@@ -44,6 +45,42 @@ function buildLiveMeta(provider: string): DataMeta {
     source: "live",
     provider,
     updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildTeamStatsEnvelope(
+  teams: Team[],
+  feeds: TeamStatsFeedBundle,
+): DataEnvelope<NormalizedTeamStats[]> {
+  const normalized = adaptTeamStatsFeeds({
+    teams,
+    espnPages: feeds.espnPages,
+    ncaaStandingsPayload: feeds.ncaaStandingsPayload,
+    torvikPayload: feeds.torvikPayload,
+    fetchedAt: feeds.fetchedAt,
+  });
+  const statsStatus = getStatsStatus(normalized);
+  logStatDiagnostics(normalized);
+
+  return {
+    data: normalized,
+    meta:
+      statsStatus === "Mock Fallback"
+        ? buildMockMeta(
+            feeds.torvikPayload ? "ESPN + NCAA API + Torvik supplement" : "ESPN + NCAA API",
+            "Live stat coverage was unavailable.",
+          )
+        : {
+            source: statsStatus === "Live Stats" ? "live" : "mock",
+            provider: feeds.torvikPayload
+              ? "ESPN + NCAA API + Torvik supplement"
+              : "ESPN + NCAA API",
+            fallbackReason:
+              statsStatus === "Partial Fallback"
+                ? "Partial stat coverage; fallback values are still filling missing categories."
+                : undefined,
+            updatedAt: feeds.fetchedAt,
+          },
   };
 }
 
@@ -78,6 +115,35 @@ function mergeBracketTeamsWithLive(liveTeams: Team[]) {
   return buildTournamentTeams(liveTeams, tournamentField);
 }
 
+function mergeTeamLogos(
+  teams: Team[],
+  brandingByTeamId: Map<
+    string,
+    {
+      logoUrl: string;
+      logoLightUrl: string | null;
+      logoDarkUrl: string | null;
+      hasLiveLogo: boolean;
+    }
+  >,
+) {
+  return teams.map((team) => {
+    const branding = brandingByTeamId.get(team.id);
+    if (!branding) {
+      return team;
+    }
+
+    return {
+      ...team,
+      logo: branding.logoUrl,
+      logoUrl: branding.logoUrl,
+      logoLightUrl: branding.logoLightUrl,
+      logoDarkUrl: branding.logoDarkUrl,
+      hasLiveLogo: branding.hasLiveLogo,
+    };
+  });
+}
+
 export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
   try {
     const [rankingsResult, standingsResult, scoreboardResult] = await Promise.allSettled([
@@ -97,12 +163,20 @@ export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
       gamesPayload,
       fallbackTeams: mockTeams,
     });
-    const teamStats = await getNcaaTeamStatsData(teams, standingsPayload);
-    const enrichedTeams = mergeStatsIntoTeams(teams, teamStats.data);
+    const statFeeds = await fetchTeamStatsBundle({ standingsPayload });
+    const teamStats = buildTeamStatsEnvelope(teams, statFeeds);
+    const teamBranding = extractEspnTeamBranding({
+      espnPages: statFeeds.espnPages,
+      teams,
+    });
+    const enrichedTeams = mergeTeamLogos(
+      mergeStatsIntoTeams(teams, teamStats.data),
+      teamBranding,
+    );
 
     if (teams === mockTeams) {
       return {
-        data: mergeStatsIntoTeams(mockTeams, teamStats.data),
+        data: mergeTeamLogos(mergeStatsIntoTeams(mockTeams, teamStats.data), teamBranding),
         meta: buildMockMeta("NCAA API", "Live NCAA team feed was unavailable."),
       };
     }
@@ -129,36 +203,7 @@ export async function getNcaaTeamStatsData(
 ): Promise<DataEnvelope<NormalizedTeamStats[]>> {
   try {
     const feeds = await fetchTeamStatsBundle({ standingsPayload });
-    const normalized = adaptTeamStatsFeeds({
-      teams,
-      espnPages: feeds.espnPages,
-      ncaaStandingsPayload: feeds.ncaaStandingsPayload,
-      torvikPayload: feeds.torvikPayload,
-      fetchedAt: feeds.fetchedAt,
-    });
-    const statsStatus = getStatsStatus(normalized);
-    logStatDiagnostics(normalized);
-
-    return {
-      data: normalized,
-      meta:
-        statsStatus === "Mock Fallback"
-          ? buildMockMeta(
-              feeds.torvikPayload ? "ESPN + NCAA API + Torvik supplement" : "ESPN + NCAA API",
-              "Live stat coverage was unavailable.",
-            )
-          : {
-              source: statsStatus === "Live Stats" ? "live" : "mock",
-              provider: feeds.torvikPayload
-                ? "ESPN + NCAA API + Torvik supplement"
-                : "ESPN + NCAA API",
-              fallbackReason:
-                statsStatus === "Partial Fallback"
-                  ? "Partial stat coverage; fallback values are still filling missing categories."
-                  : undefined,
-              updatedAt: feeds.fetchedAt,
-            },
-    };
+    return buildTeamStatsEnvelope(teams, feeds);
   } catch (error) {
     return {
       data: teams.map((team) => ({

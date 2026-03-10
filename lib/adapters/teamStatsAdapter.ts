@@ -29,6 +29,7 @@ type ParsedEspnRow = {
 };
 
 type GenericRecord = Record<string, unknown>;
+const unresolvedBrandingNames = new Set<string>();
 
 const espnPageConfig: Record<string, EspnPageConfig> = {
   offense: {
@@ -267,6 +268,100 @@ function parseEspnTablePage({
   }
 
   return records;
+}
+
+type EspnBrandingRecord = {
+  teamId: string;
+  displayName: string;
+  logoUrl: string;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
+  hasLiveLogo: boolean;
+};
+
+function matchEspnBrandingTeam(
+  teamPayload: Record<string, string>,
+  teams: Team[],
+) {
+  const candidates = [
+    teamPayload.nickname,
+    teamPayload.displayName,
+    teamPayload.shortDisplayName,
+    teamPayload.abbrev,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const match = matchTeamName(candidate, teams, "espn-branding");
+    if (match.matchedTeam) {
+      return match;
+    }
+  }
+
+  if (process.env.NODE_ENV !== "production" && candidates[0]) {
+    const key = normalizeTeamName(candidates[0]);
+    if (!unresolvedBrandingNames.has(key)) {
+      unresolvedBrandingNames.add(key);
+      console.warn(`[team-branding] unresolved ESPN branding team`, candidates);
+    }
+  }
+
+  return null;
+}
+
+export function extractEspnTeamBranding({
+  espnPages,
+  teams,
+}: {
+  espnPages: Partial<Record<string, string>>;
+  teams: Team[];
+}) {
+  const brandingByTeamId = new Map<string, EspnBrandingRecord>();
+  const teamPattern =
+    /"team":\{"id":"([^"]+)","abbrev":"([^"]*)","displayName":"([^"]+)","shortDisplayName":"([^"]*)","logo":"(https?:\/\/[^"]+)".*?"nickname":"([^"]*)"/g;
+
+  for (const html of Object.values(espnPages)) {
+    if (!html) {
+      continue;
+    }
+
+    const matches = html.matchAll(teamPattern);
+    for (const matchResult of matches) {
+      const [, id, abbrev, displayName, shortDisplayName, logo, nickname] = matchResult;
+      if (!logo || !displayName) {
+        continue;
+      }
+
+      const matchedTeam = matchEspnBrandingTeam(
+        {
+          id,
+          abbrev,
+          displayName,
+          shortDisplayName,
+          logo,
+          nickname,
+        },
+        teams,
+      );
+      if (!matchedTeam?.matchedTeam) {
+        continue;
+      }
+
+      if (brandingByTeamId.has(matchedTeam.canonicalId)) {
+        continue;
+      }
+
+      brandingByTeamId.set(matchedTeam.canonicalId, {
+        teamId: matchedTeam.canonicalId,
+        displayName: matchedTeam.matchedTeam.name,
+        logoUrl: logo,
+        logoLightUrl: logo,
+        logoDarkUrl: logo,
+        hasLiveLogo: true,
+      });
+    }
+  }
+
+  return brandingByTeamId;
 }
 
 function parseNcaaStandingsPayload(payload: unknown, teams: Team[]) {

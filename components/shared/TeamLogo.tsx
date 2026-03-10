@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Team } from "@/lib/types";
 import type { TeamMeta } from "@/lib/data/teamMeta";
+
+const missingLogoWarnings = new Set<string>();
 
 type TeamLogoProps = {
   team?: Pick<Team, "name" | "shortName" | "logo" | "logoUrl" | "logoDarkUrl" | "logoLightUrl" | "hasLiveLogo"> | null;
@@ -43,6 +45,22 @@ export function TeamLogo({
 
   const activeLogo = logoCandidates.find((candidate) => !failedUrls.includes(candidate)) ?? null;
   const shapeClass = shape === "circle" ? "rounded-full" : "rounded-2xl";
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || activeLogo || !team || name === "TBD") {
+      return;
+    }
+
+    const warningKey = team.name ?? name;
+    if (missingLogoWarnings.has(warningKey)) {
+      return;
+    }
+
+    missingLogoWarnings.add(warningKey);
+    console.warn(`[team-logo] missing live logo for ${warningKey}`, {
+      team,
+    });
+  }, [activeLogo, name, team]);
 
   if (activeLogo) {
     return (

@@ -5,6 +5,7 @@ import { matchTeamName } from "@/lib/utils/teamMatcher";
 type GenericRecord = Record<string, unknown>;
 
 const BOOK_PRIORITY = ["DraftKings", "FanDuel", "BetMGM", "Caesars", "Pinnacle"];
+const unresolvedOddsTeams = new Set<string>();
 
 function parseNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -57,6 +58,19 @@ function getMarket(bookmaker: GenericRecord, key: string) {
   return extractMarkets(bookmaker).find((market) => parseString(market.key) === key) ?? null;
 }
 
+function logUnresolvedOddsTeam(rawName: string) {
+  if (process.env.NODE_ENV === "production" || !rawName.trim()) {
+    return;
+  }
+
+  if (unresolvedOddsTeams.has(rawName)) {
+    return;
+  }
+
+  unresolvedOddsTeams.add(rawName);
+  console.warn(`[oddsAdapter] unresolved odds team: ${rawName}`);
+}
+
 export function adaptOddsToGameLines(payload: unknown, teams: Team[] = []) {
   if (!Array.isArray(payload)) {
     return [];
@@ -68,6 +82,14 @@ export function adaptOddsToGameLines(payload: unknown, teams: Team[] = []) {
       const homeMatch = matchTeamName(parseString(event.home_team) ?? "", teams, "odds-home");
       const awayMatch = matchTeamName(parseString(event.away_team) ?? "", teams, "odds-away");
       const bookmaker = pickBookmaker(event);
+
+      if (!homeMatch.matchedTeam) {
+        logUnresolvedOddsTeam(parseString(event.home_team) ?? "");
+      }
+
+      if (!awayMatch.matchedTeam) {
+        logUnresolvedOddsTeam(parseString(event.away_team) ?? "");
+      }
 
       if (!homeMatch.canonicalName || !awayMatch.canonicalName || !bookmaker) {
         return null;

@@ -28,6 +28,7 @@ import type {
 import { buildTournamentTeams } from "@/lib/utils/buildTournamentBracket";
 import { mergeStatsIntoTeams } from "@/lib/utils/statMerge";
 import { getStatsStatus, logStatDiagnostics } from "@/lib/utils/statAvailability";
+import { buildTeamCoverageReport, logTeamCoverageReport } from "@/lib/utils/teamCoverageReport";
 import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 import type { TeamStatsFeedBundle } from "@/lib/api/fetchTeamStats";
 const logoAuditKeys = new Set<string>();
@@ -240,9 +241,20 @@ export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
       meta: buildLiveMeta("NCAA API"),
     };
   } catch (error) {
-    const teamStats = await getNcaaTeamStatsData(mockTeams);
+    const [teamStats, statFeeds] = await Promise.all([
+      getNcaaTeamStatsData(mockTeams),
+      fetchTeamStatsBundle().catch(() => null),
+    ]);
+    const teamBranding = statFeeds
+      ? extractEspnTeamBranding({
+          espnPages: statFeeds.espnPages,
+          teams: mockTeams,
+        })
+      : new Map();
+    const fallbackTeams = mergeTeamLogos(mergeStatsIntoTeams(mockTeams, teamStats.data), teamBranding);
+    logLogoCoverage("ncaa-teams-catch-fallback", fallbackTeams);
     return {
-      data: mergeStatsIntoTeams(mockTeams, teamStats.data),
+      data: fallbackTeams,
       meta: buildMockMeta(
         "NCAA API",
         error instanceof Error ? error.message : "Live NCAA team feed failed.",
@@ -435,6 +447,12 @@ export async function getNcaaDashboardData() {
     teamsResult.meta.source === "live" && gamesResult.meta.source === "live"
       ? "live"
       : "mock";
+  const coverageReport = buildTeamCoverageReport({
+    teams: teamsResult.data,
+    oddsLines: oddsResult.data.lines,
+    tournamentTeamIds: tournamentField.map((entry) => entry.teamId),
+  });
+  logTeamCoverageReport("ncaa-dashboard", coverageReport);
 
   return {
     teams: teamsResult.data,
@@ -472,6 +490,13 @@ export async function getBettingPageData() {
   const bracketTeams = mergeBracketTeamsWithLive(dashboardData.teams);
   logLogoCoverage("betting-teams", dashboardData.teams);
   logLogoCoverage("bracket-teams", bracketTeams);
+  logTeamCoverageReport(
+    "bracket-teams",
+    buildTeamCoverageReport({
+      teams: bracketTeams,
+      tournamentTeamIds: tournamentField.map((entry) => entry.teamId),
+    }),
+  );
 
   return {
     teams: dashboardData.teams,

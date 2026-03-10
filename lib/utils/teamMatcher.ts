@@ -5,6 +5,23 @@ import { createTeamSlug, normalizeTeamName } from "@/lib/utils/teamNameNormalize
 const aliasIndex = new Map<string, { id: string; displayName: string; confidence: TeamMatchResult["confidence"] }>();
 const unresolvedNames = new Set<string>();
 
+function findExpandedNameMatch(normalizedRaw: string, teams: Team[]) {
+  const teamCandidates = teams
+    .map((team) => ({
+      team,
+      normalizedName: normalizeTeamName(team.name),
+    }))
+    .sort((left, right) => right.normalizedName.length - left.normalizedName.length);
+
+  return (
+    teamCandidates.find(
+      ({ normalizedName }) =>
+        normalizedRaw.startsWith(`${normalizedName} `) ||
+        normalizedName.startsWith(`${normalizedRaw} `),
+    )?.team ?? null
+  );
+}
+
 for (const team of ncaaTeamAliases) {
   aliasIndex.set(normalizeTeamName(team.displayName), {
     id: team.id,
@@ -68,6 +85,7 @@ export function matchTeamName(
     teams.find((team) => getCanonicalTeamIdentity(team.name).id === identity.id) ??
     teams.find((team) => normalizeTeamName(team.name) === normalizedRaw) ??
     teams.find((team) => normalizeTeamName(team.shortName) === normalizedRaw) ??
+    findExpandedNameMatch(normalizedRaw, teams) ??
     null;
 
   if (!matchedTeam && identity.confidence === "derived") {

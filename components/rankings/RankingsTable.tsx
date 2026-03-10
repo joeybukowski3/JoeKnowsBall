@@ -52,10 +52,10 @@ function getSortIndicator(active: boolean, direction: RankingsSortState["directi
 
 export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/35">
+    <div className="data-table-wrap">
       <div className="overflow-x-auto">
-        <table className="min-w-[1080px] divide-y divide-white/8 text-left">
-          <thead className="bg-white/[0.06]">
+        <table className="data-table min-w-[1180px] divide-y divide-white/8 text-left">
+          <thead className="bg-[rgba(17,24,39,0.86)]">
             <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
               {columns.map((column) => {
                 const isActive = sort.key === column.key;
@@ -65,8 +65,8 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                     <button
                       type="button"
                       onClick={() => onSort(column.key)}
-                      className={`inline-flex items-center gap-2 rounded-lg px-2 py-1.5 transition ${
-                        isActive ? "bg-white/[0.08] text-slate-50" : "hover:bg-white/[0.04] hover:text-slate-200"
+                      className={`inline-flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition ${
+                        isActive ? "bg-indigo-500/14 text-slate-50" : "hover:bg-white/[0.04] hover:text-slate-200"
                       }`}
                     >
                       <span>{column.label}</span>
@@ -80,17 +80,25 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
           <tbody className="divide-y divide-white/8 bg-transparent">
             {rows.map((row) => {
               const badgeTone = row.valueLabel === "Strong" ? "emerald" : row.valueLabel === "Watch" ? "amber" : "neutral";
+              const scoreBar = Math.max(10, Math.min(100, row.overallScore));
 
               return (
-                <tr key={row.team.id} className="hover:bg-white/[0.04]">
+                <tr key={row.team.id} className="group hover:bg-white/[0.045]">
                   <td className="px-4 py-3 text-sm font-semibold text-white">
-                    <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs">#{row.rank}</span>
+                    <span className="rounded-full border border-white/8 bg-white/[0.045] px-2.5 py-1 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">#{row.rank}</span>
                   </td>
                   <td className="px-4 py-3">
                     <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />
                   </td>
                   <td className="px-4 py-3 text-sm text-slate-300">{row.team.conference}</td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-sky-300">{row.overallScore.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-200">
+                    <div className="flex min-w-[110px] items-center justify-end gap-3">
+                      <div className="stat-bar h-2 w-16">
+                        <span style={{ width: `${scoreBar}%` }} />
+                      </div>
+                      <span>{row.overallScore.toFixed(1)}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.offense.raw.toFixed(1)}</td>
                   <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.defense.raw.toFixed(1)}</td>
                   <td className="px-4 py-3 text-right text-sm text-slate-300">{row.categoryScores.shooting.raw.toFixed(1)}</td>

@@ -60,9 +60,10 @@ export function LandingPage({
   });
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.18),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.48))] p-7 shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-10">
-        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_55%)] lg:block" />
+    <div className="space-y-10">
+      <section className="glass-panel relative overflow-hidden rounded-[38px] p-7 shadow-[0_36px_120px_rgba(0,0,0,0.34)] sm:p-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,70,229,0.28),transparent_34%),radial-gradient(circle_at_85%_15%,rgba(34,197,94,0.1),transparent_20%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_52%)]" />
+        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_55%)] lg:block" />
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_400px] lg:items-end">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3">
@@ -72,7 +73,7 @@ export function LandingPage({
               </Badge>
             </div>
             <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/90">
+              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-indigo-200/90">
                 March Launch
               </p>
               <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
@@ -87,19 +88,19 @@ export function LandingPage({
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/ncaa"
-                className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                className="rounded-2xl bg-[linear-gradient(135deg,#4f46e5,#6366f1)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(79,70,229,0.32)] transition hover:-translate-y-0.5 hover:brightness-110"
               >
                 Explore NCAA Rankings
               </Link>
               <Link
                 href="/bracket"
-                className="rounded-2xl border border-white/12 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-sky-300/30 hover:bg-white/14"
+                className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.1]"
               >
                 Open Bracket Builder
               </Link>
               <Link
                 href="/betting/best-bets"
-                className="rounded-2xl border border-white/12 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-sky-300/30 hover:bg-white/14"
+                className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-emerald-400/30 hover:bg-white/[0.1]"
               >
                 Today&apos;s Best Bets
               </Link>
@@ -111,7 +112,7 @@ export function LandingPage({
           </div>
 
           <div className="grid gap-4">
-            <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-sm">
+            <div className="glass-panel rounded-[30px] p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Right now
               </p>
@@ -124,7 +125,7 @@ export function LandingPage({
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.05] p-4">
+              <div className="glass-panel rounded-[24px] p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Best value play
                 </p>
@@ -137,7 +138,7 @@ export function LandingPage({
                     : "--"}
                 </p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.05] p-4">
+              <div className="glass-panel rounded-[24px] p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Top champion
                 </p>
@@ -157,9 +158,9 @@ export function LandingPage({
 
       <section className="space-y-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/85">
-            Quick Access
-          </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+              Quick Access
+            </p>
           <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
             Jump straight into the NCAA toolset
           </h2>
@@ -218,9 +219,9 @@ export function LandingPage({
 
       <section className="space-y-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/85">
-            Pro Sports
-          </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+              Pro Sports
+            </p>
           <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
             Multi-sport premium modules are already staged
           </h2>
@@ -250,8 +251,8 @@ export function LandingPage({
 
       <section className="grid gap-4 xl:grid-cols-5">
         <div className="xl:col-span-2">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/85">
+            <div className="glass-panel rounded-[30px] p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
               Why JKB
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">
@@ -273,7 +274,7 @@ export function LandingPage({
           ].map(([title, description]) => (
             <div
               key={title}
-              className="rounded-[24px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.14)]"
+              className="glass-panel rounded-[26px] p-5"
             >
               <h3 className="text-lg font-semibold text-white">{title}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-300">{description}</p>
@@ -284,10 +285,10 @@ export function LandingPage({
 
       <ModelStatusIndicator status={modelStatus} />
 
-      <section className="rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.18),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.46))] p-8 shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
+      <section className="glass-panel rounded-[34px] p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/85">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
               Launch CTA
             </p>
             <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
@@ -300,13 +301,13 @@ export function LandingPage({
           <div className="flex flex-wrap gap-3">
             <Link
               href="/ncaa"
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+              className="rounded-2xl bg-[linear-gradient(135deg,#4f46e5,#6366f1)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(79,70,229,0.32)] transition hover:-translate-y-0.5 hover:brightness-110"
             >
               Explore NCAA for Free
             </Link>
             <Link
               href="/pricing"
-              className="rounded-2xl border border-white/12 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-sky-300/30 hover:bg-white/14"
+              className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.1]"
             >
               Upgrade to Pro
             </Link>

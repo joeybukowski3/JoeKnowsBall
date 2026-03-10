@@ -19,14 +19,14 @@ export function BettingSummaryPanel({
 }: BettingSummaryPanelProps) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(125,211,252,0.1),rgba(15,23,42,0.36))] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.2)]">
+      <div className="glass-panel rounded-[30px] p-6">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/80">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200/80">
             Slate Summary
           </p>
           <Badge tone="sky">NCAA</Badge>
         </div>
-        <p className="mt-3 text-sm leading-6 text-slate-300">
+        <p className="mt-3 text-sm leading-7 text-slate-400">
           Highest-confidence value indicators and volatility signals across the
           currently visible card.
         </p>

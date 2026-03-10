@@ -42,7 +42,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
   const teams = [game.teamA, game.teamB];
 
   return (
-    <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-3 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+    <article className="glass-panel rounded-[28px] p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
@@ -74,11 +74,11 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
               onClick={() => (participant.team ? onPick(game.id, participant.team.id) : undefined)}
               className={`w-full rounded-2xl border p-3 text-left transition ${
                 isSelected
-                  ? "border-sky-400/40 bg-sky-400/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-                  : "border-white/8 bg-white/[0.04]"
+                  ? "border-indigo-400/40 bg-indigo-500/12 shadow-[0_12px_30px_rgba(79,70,229,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                  : "border-white/8 bg-white/[0.035]"
               } ${
                 canPick
-                  ? "hover:border-sky-300/20 hover:bg-white/[0.08]"
+                  ? "hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.08]"
                   : "cursor-default opacity-85"
               }`}
             >
@@ -95,7 +95,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
                   compact
                 />
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-sky-300">
+                  <p className="text-sm font-semibold text-indigo-200">
                     {participant.modelScore?.toFixed(1) ?? "--"}
                   </p>
                   <p className="mt-1 text-xs text-slate-400">
@@ -110,7 +110,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
         })}
       </div>
 
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/8 pt-3">
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Why this pick
@@ -129,7 +129,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
           className={`rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
             game.isLocked
               ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
-              : "border-white/12 bg-white/8 text-slate-200 hover:border-white/20 hover:bg-white/12"
+              : "border-white/12 bg-white/8 text-slate-200 hover:border-indigo-400/30 hover:bg-indigo-500/12"
           } ${!game.winnerTeamId ? "cursor-not-allowed opacity-60" : ""}`}
         >
           {game.isLocked ? "Unlock pick" : "Lock pick"}

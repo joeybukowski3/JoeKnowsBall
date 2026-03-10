@@ -24,10 +24,10 @@ function getTierTone(valueTier: GameValueRow["valueTier"]) {
 
 export function GameValueTable({ rows }: GameValueTableProps) {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-white/10">
+    <div className="data-table-wrap">
       <div className="overflow-x-auto">
-        <table className="min-w-[1320px] divide-y divide-white/8 text-left">
-          <thead className="bg-white/[0.06]">
+        <table className="data-table min-w-[1320px] divide-y divide-white/8 text-left">
+          <thead className="bg-[rgba(17,24,39,0.86)]">
             <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
               <th className="px-4 py-3">Matchup</th>
               <th className="px-4 py-3">Start</th>
@@ -51,9 +51,16 @@ export function GameValueTable({ rows }: GameValueTableProps) {
                 <td className="px-4 py-3 text-sm text-slate-300">{row.game.startTime}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{row.sportsbookSpread > 0 ? `+${row.sportsbookSpread}` : row.sportsbookSpread}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{row.modelSpread > 0 ? `+${row.modelSpread}` : row.modelSpread}</td>
-                <td className="px-4 py-3 text-right text-sm font-medium text-sky-300">{row.spreadEdge > 0 ? `+${row.spreadEdge.toFixed(1)}` : row.spreadEdge.toFixed(1)}</td>
+                <td className="px-4 py-3 text-right text-sm font-medium text-indigo-200">{row.spreadEdge > 0 ? `+${row.spreadEdge.toFixed(1)}` : row.spreadEdge.toFixed(1)}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{formatAmericanOdds(row.sportsbookMoneyline)}</td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300">{(row.modelWinProbability * 100).toFixed(1)}%</td>
+                <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <div className="inline-flex min-w-[110px] items-center justify-end gap-3">
+                    <div className="stat-bar h-2 w-16">
+                      <span style={{ width: `${Math.max(8, row.modelWinProbability * 100)}%` }} />
+                    </div>
+                    <span>{(row.modelWinProbability * 100).toFixed(1)}%</span>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{(row.impliedWinProbability * 100).toFixed(1)}%</td>
                 <td className="px-4 py-3 text-right text-sm font-medium text-emerald-300">{row.moneylineEdge > 0 ? `+${(row.moneylineEdge * 100).toFixed(1)}%` : `${(row.moneylineEdge * 100).toFixed(1)}%`}</td>
                 <td className="px-4 py-3 text-right text-sm text-slate-300">{row.upsetRisk}</td>

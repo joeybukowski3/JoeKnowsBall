@@ -1,6 +1,8 @@
 import { rankingCategories } from "@/lib/data";
 import type {
   BracketGameNode,
+  BracketLocksMap,
+  RankingCategoryGroup,
   RankingPreset,
   RankingResultRow,
   RankingSettings,
@@ -8,6 +10,7 @@ import type {
   ResolvedBracketParticipant,
   Team,
   TournamentSimulationResult,
+  UpsetSeverity,
 } from "@/lib/types";
 import { rankingsEngine } from "@/lib/utils/rankingsEngine";
 
@@ -34,6 +37,18 @@ const roundOrder = [
   "Championship",
 ] as const;
 
+const reasonLabels: Record<RankingCategoryGroup, string> = {
+  offense: "Stronger offense",
+  defense: "Stronger defense",
+  shooting: "Cleaner shooting profile",
+  rebounding: "Better rebounding control",
+  ballControl: "Safer ball control",
+  sos: "More schedule-tested",
+  recentForm: "Better recent form",
+  homeAway: "More travel-proof profile",
+  atsTrends: "Better ATS support",
+};
+
 function clonePresetSettings(preset: RankingPreset): RankingSettings {
   return {
     presetId: preset.id,
@@ -42,10 +57,15 @@ function clonePresetSettings(preset: RankingPreset): RankingSettings {
   };
 }
 
-export function getBracketWinProbability(
-  scoreA: number | null,
-  scoreB: number | null,
-) {
+export function getOrderedBracketGames(bracketGames: BracketGameNode[]) {
+  return [...bracketGames].sort(
+    (left, right) =>
+      roundOrder.indexOf(left.round) - roundOrder.indexOf(right.round) ||
+      left.order - right.order,
+  );
+}
+
+export function getBracketWinProbability(scoreA: number | null, scoreB: number | null) {
   if (scoreA === null || scoreB === null) {
     return null;
   }
@@ -99,10 +119,7 @@ function resolveParticipant(
   };
 }
 
-export function getUpsetRisk(
-  teamA: ResolvedBracketParticipant,
-  teamB: ResolvedBracketParticipant,
-) {
+export function getUpsetRisk(teamA: ResolvedBracketParticipant, teamB: ResolvedBracketParticipant) {
   if (!teamA.team || !teamB.team || !teamA.rank || !teamB.rank) {
     return "Toss-Up" as const;
   }
@@ -122,36 +139,117 @@ export function getUpsetRisk(
   return modelDiff <= 5 ? "Toss-Up" as const : "Low" as const;
 }
 
+export function getUpsetSeverity(
+  teamA: ResolvedBracketParticipant,
+  teamB: ResolvedBracketParticipant,
+  winnerTeamId: string | null,
+): UpsetSeverity {
+  if (!winnerTeamId || !teamA.team || !teamB.team) {
+    return "None";
+  }
+
+  const winner = teamA.team.id === winnerTeamId ? teamA : teamB;
+  const loser = teamA.team.id === winnerTeamId ? teamB : teamA;
+  const winnerSeed = winner.seed ?? 0;
+  const loserSeed = loser.seed ?? 0;
+
+  if (!winnerSeed || !loserSeed || winnerSeed <= loserSeed) {
+    return "None";
+  }
+
+  const seedGap = winnerSeed - loserSeed;
+  const modelGap = Math.abs((winner.modelScore ?? 0) - (loser.modelScore ?? 0));
+
+  if (seedGap >= 8 || (seedGap >= 6 && modelGap <= 4.5)) {
+    return "Major Upset";
+  }
+
+  if (seedGap >= 5 || (seedGap >= 4 && modelGap <= 7)) {
+    return "Strong Upset";
+  }
+
+  return "Mild Upset";
+}
+
+export function buildPickReason(
+  teamA: ResolvedBracketParticipant,
+  teamB: ResolvedBracketParticipant,
+  winnerTeamId: string | null,
+  preset?: RankingPreset,
+) {
+  if (!winnerTeamId || !teamA.team || !teamB.team) {
+    return null;
+  }
+
+  const winner = teamA.team.id === winnerTeamId ? teamA.team : teamB.team;
+  const loser = teamA.team.id === winnerTeamId ? teamB.team : teamA.team;
+  const winnerSeed = teamA.team.id === winnerTeamId ? teamA.seed : teamB.seed;
+  const loserSeed = teamA.team.id === winnerTeamId ? teamB.seed : teamA.seed;
+  const overallGap = Math.abs((teamA.modelScore ?? 0) - (teamB.modelScore ?? 0));
+
+  if (
+    preset?.id === "upset-finder" &&
+    winnerSeed !== null &&
+    loserSeed !== null &&
+    winnerSeed !== undefined &&
+    loserSeed !== undefined &&
+    winnerSeed > loserSeed
+  ) {
+    return {
+      label: "Value-driven upset pick",
+      detail: `${winner.shortName} grades well on recent form and market-facing signals despite the seed gap.`,
+    };
+  }
+
+  if (overallGap >= 8) {
+    return {
+      label: "Stronger overall model score",
+      detail: `${winner.shortName} owns the clearest full-profile edge in the active ${preset?.name ?? "model"}.`,
+    };
+  }
+
+  let bestCategory: RankingCategoryGroup = "offense";
+  let bestAdvantage = Number.NEGATIVE_INFINITY;
+
+  for (const category of rankingCategories) {
+    if (preset && !preset.activeCategories[category.key]) {
+      continue;
+    }
+
+    const winnerValue = winner.metrics[category.key];
+    const loserValue = loser.metrics[category.key];
+    const rawDifference =
+      category.direction === "lower" ? loserValue - winnerValue : winnerValue - loserValue;
+    const weightedDifference = rawDifference * (preset?.weights[category.key] ?? 1);
+
+    if (weightedDifference > bestAdvantage) {
+      bestAdvantage = weightedDifference;
+      bestCategory = category.key;
+    }
+  }
+
+  return {
+    label: reasonLabels[bestCategory],
+    detail: `${winner.shortName} separates most clearly in ${reasonLabels[bestCategory].toLowerCase()} under the current weighting.`,
+  };
+}
+
 export function resolveBracket(
   bracketGames: BracketGameNode[],
   teams: Team[],
   rankingRows: RankingResultRow[],
   picks: BracketPicksMap,
+  lockedGames: BracketLocksMap = {},
+  preset?: RankingPreset,
 ) {
   const teamsById = new Map(teams.map((team) => [team.id, team]));
   const rankingById = new Map(rankingRows.map((row) => [row.team.id, row]));
   const winnersByGame = new Map<string, string | null>();
   const resolvedGames: ResolvedBracketGame[] = [];
 
-  const orderedGames = [...bracketGames].sort(
-    (left, right) =>
-      roundOrder.indexOf(left.round) - roundOrder.indexOf(right.round) ||
-      left.order - right.order,
-  );
-
-  for (const game of orderedGames) {
-    const teamA = resolveParticipant(
-      game.participants[0],
-      teamsById,
-      rankingById,
-      winnersByGame,
-    );
-    const teamB = resolveParticipant(
-      game.participants[1],
-      teamsById,
-      rankingById,
-      winnersByGame,
-    );
+  for (const game of getOrderedBracketGames(bracketGames)) {
+    const teamA = resolveParticipant(game.participants[0], teamsById, rankingById, winnersByGame);
+    const teamB = resolveParticipant(game.participants[1], teamsById, rankingById, winnersByGame);
     const probabilityA = getBracketWinProbability(teamA.modelScore, teamB.modelScore);
     const probabilityB = probabilityA !== null ? 1 - probabilityA : null;
     teamA.winProbability = probabilityA;
@@ -159,8 +257,7 @@ export function resolveBracket(
 
     const candidateWinner = picks[game.id];
     const validWinner =
-      candidateWinner &&
-      [teamA.team?.id, teamB.team?.id].includes(candidateWinner)
+      candidateWinner && [teamA.team?.id, teamB.team?.id].includes(candidateWinner)
         ? candidateWinner
         : null;
 
@@ -176,7 +273,10 @@ export function resolveBracket(
       teamA,
       teamB,
       winnerTeamId: validWinner,
+      isLocked: Boolean(lockedGames[game.id] && validWinner),
       upsetRisk: getUpsetRisk(teamA, teamB),
+      upsetSeverity: getUpsetSeverity(teamA, teamB, validWinner),
+      pickReason: buildPickReason(teamA, teamB, validWinner, preset),
     });
   }
 
@@ -189,13 +289,8 @@ export function autoFillBracket(
   rankingRows: RankingResultRow[],
 ) {
   const picks: BracketPicksMap = {};
-  const orderedGames = [...bracketGames].sort(
-    (left, right) =>
-      roundOrder.indexOf(left.round) - roundOrder.indexOf(right.round) ||
-      left.order - right.order,
-  );
 
-  for (const game of orderedGames) {
+  for (const game of getOrderedBracketGames(bracketGames)) {
     const resolved = resolveBracket(bracketGames, teams, rankingRows, picks);
     const current = resolved.find((resolvedGame) => resolvedGame.id === game.id);
 
@@ -229,11 +324,7 @@ function createSimulationSeed(teams: Team[]) {
   );
 }
 
-function markAdvance(
-  tracker: ReturnType<typeof createSimulationSeed>,
-  teamId: string,
-  round: SimulationAdvanceKey,
-) {
+function markAdvance(tracker: ReturnType<typeof createSimulationSeed>, teamId: string, round: SimulationAdvanceKey) {
   const row = tracker.get(teamId);
   if (!row) {
     return;
@@ -261,13 +352,8 @@ export function tournamentSimulator({
 
   for (let iteration = 0; iteration < iterations; iteration += 1) {
     const picks: BracketPicksMap = { ...lockedPicks };
-    const orderedGames = [...bracketGames].sort(
-      (left, right) =>
-        roundOrder.indexOf(left.round) - roundOrder.indexOf(right.round) ||
-        left.order - right.order,
-    );
 
-    for (const game of orderedGames) {
+    for (const game of getOrderedBracketGames(bracketGames)) {
       const resolved = resolveBracket(bracketGames, teams, rankingRows, picks);
       const current = resolved.find((resolvedGame) => resolvedGame.id === game.id);
 
@@ -277,8 +363,7 @@ export function tournamentSimulator({
 
       const probabilityA =
         getBracketWinProbability(current.teamA.modelScore, current.teamB.modelScore) ?? 0.5;
-      picks[game.id] =
-        Math.random() <= probabilityA ? current.teamA.team.id : current.teamB.team.id;
+      picks[game.id] = Math.random() <= probabilityA ? current.teamA.team.id : current.teamB.team.id;
     }
 
     const finalBracket = resolveBracket(bracketGames, teams, rankingRows, picks);

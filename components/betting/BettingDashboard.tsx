@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { BettingControls } from "@/components/betting/BettingControls";
 import { BettingSummaryPanel } from "@/components/betting/BettingSummaryPanel";
 import { FuturesValueWatch } from "@/components/insights/FuturesValueWatch";
@@ -14,6 +15,7 @@ import {
 } from "@/components/betting/FuturesValueTable";
 import { GameValueTable } from "@/components/betting/GameValueTable";
 import { Badge } from "@/components/shared/Badge";
+import { ModelStatusIndicator } from "@/components/shared/ModelStatusIndicator";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import type {
@@ -26,6 +28,7 @@ import type {
   Team,
   TournamentSimulationResult,
 } from "@/lib/types";
+import { buildBestBetsSnapshot } from "@/lib/utils/bestBets";
 import { matchupEngine } from "@/lib/utils/matchupEngine";
 import {
   americanToImpliedProbability,
@@ -45,6 +48,7 @@ import {
   buildTopValuePlays,
   buildUpsetWatch,
 } from "@/lib/utils/insightBuilders";
+import { buildModelStatusSummary } from "@/lib/utils/modelStatus";
 
 type BettingDashboardProps = {
   teams: Team[];
@@ -287,6 +291,22 @@ export function BettingDashboard({
   const topSpreadPlays = buildTopSpreadEdges(filteredGameRows, 1);
   const upsetWatch = buildUpsetWatch(filteredGameRows, 5);
   const topFutures = buildFuturesValueWatch(futuresRows, 5);
+  const modelStatus = buildModelStatusSummary({
+    teams,
+    dataSource,
+  });
+  const bestBetsSnapshot = useMemo(
+    () =>
+      buildBestBetsSnapshot({
+        teams,
+        bracketTeams,
+        games,
+        futuresMarkets,
+        bracketGames,
+        preset: selectedPreset,
+      }),
+    [bracketGames, bracketTeams, futuresMarkets, games, selectedPreset, teams],
+  );
 
   function handleFuturesSort(key: FuturesSortKey) {
     if (futuresSort === key) {
@@ -305,9 +325,17 @@ export function BettingDashboard({
         title="NCAA game value and futures dashboard"
         description="Premium-style betting workflow built from internal power ratings, matchup logic, sportsbook lines, and tournament simulation outputs."
       >
-        <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
-          {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
-        </Badge>
+        <div className="flex flex-wrap gap-2">
+          <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
+            {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
+          </Badge>
+          <Link
+            href="/betting/best-bets"
+            className="rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:border-white/20 hover:bg-white/14"
+          >
+            Best Bets Today
+          </Link>
+        </div>
       </PageHeader>
 
       <BettingControls
@@ -365,6 +393,34 @@ export function BettingDashboard({
               description="Most upset-prone matchup on the board."
             />
           </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                Highest Confidence Plays
+              </p>
+              <div className="mt-3 space-y-3">
+                {bestBetsSnapshot.highestConfidence.slice(0, 3).map((bet) => (
+                  <div key={bet.id} className="rounded-2xl border border-white/8 bg-slate-950/55 p-3">
+                    <p className="text-sm font-semibold text-white">{bet.selection}</p>
+                    <p className="mt-1 text-xs text-slate-400">{bet.matchup}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                High Risk / High Reward
+              </p>
+              <div className="mt-3 space-y-3">
+                {bestBetsSnapshot.highRiskReward.slice(0, 3).map((bet) => (
+                  <div key={bet.id} className="rounded-2xl border border-white/8 bg-slate-950/55 p-3">
+                    <p className="text-sm font-semibold text-white">{bet.selection}</p>
+                    <p className="mt-1 text-xs text-slate-400">{bet.matchup}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           <TopValuePlays rows={topValuePlays} title="Top 5 Value Plays Today" />
           <UpsetWatch games={upsetWatch} title="Most Upset-Prone Matchups" />
           <FuturesValueWatch rows={topFutures} title="Best Futures Value" />
@@ -403,6 +459,8 @@ export function BettingDashboard({
           averageEdge={averageEdge}
         />
       </div>
+
+      <ModelStatusIndicator status={modelStatus} />
     </div>
   );
 }

@@ -7,23 +7,17 @@ import { UpsetWatch } from "@/components/insights/UpsetWatch";
 import { PremiumSportCard } from "@/components/home/PremiumSportCard";
 import { QuickLinkCard } from "@/components/home/QuickLinkCard";
 import { Badge } from "@/components/shared/Badge";
-import type { DataSource, Game, GameValueRow, RankingPreset, Team } from "@/lib/types";
+import { ModelStatusIndicator } from "@/components/shared/ModelStatusIndicator";
+import type { DataSource, Game, RankingPreset, Team } from "@/lib/types";
 import {
-  buildChampionProbabilities,
+  buildGameValueRows,
   buildEasiestPaths,
   buildTopValuePlays,
   buildUpsetWatch,
 } from "@/lib/utils/insightBuilders";
-import { matchupEngine } from "@/lib/utils/matchupEngine";
-import { americanToImpliedProbability } from "@/lib/utils/oddsCalculator";
+import { buildModelStatusSummary } from "@/lib/utils/modelStatus";
 import { pathDifficulty } from "@/lib/utils/pathDifficulty";
-import {
-  buildBracketRankingRows,
-  getUpsetRisk,
-  tournamentSimulator,
-} from "@/lib/utils/tournamentSimulator";
-import { matchTeamName } from "@/lib/utils/teamMatcher";
-import { getSpreadValueTier, getValueTier } from "@/lib/utils/valueRatings";
+import { buildBracketRankingRows } from "@/lib/utils/tournamentSimulator";
 
 type LandingPageProps = {
   teams: Team[];
@@ -32,27 +26,8 @@ type LandingPageProps = {
   bracketGames: import("@/lib/types").BracketGameNode[];
   preset: RankingPreset;
   dataSource: DataSource;
+  updatedAt?: string;
 };
-
-function tierScore(tier: GameValueRow["valueTier"]) {
-  switch (tier) {
-    case "Strong":
-      return 4;
-    case "Medium":
-      return 3;
-    case "Small":
-      return 2;
-    default:
-      return 1;
-  }
-}
-
-function strongestTier(
-  moneylineTier: GameValueRow["valueTier"],
-  spreadTier: GameValueRow["valueTier"],
-): GameValueRow["valueTier"] {
-  return tierScore(moneylineTier) >= tierScore(spreadTier) ? moneylineTier : spreadTier;
-}
 
 export function LandingPage({
   teams,
@@ -61,75 +36,28 @@ export function LandingPage({
   bracketGames,
   preset,
   dataSource,
+  updatedAt,
 }: LandingPageProps) {
-  const rankingRows = buildBracketRankingRows(bracketTeams, preset);
-  const pathRows = pathDifficulty(bracketTeams, bracketGames, rankingRows);
-  const simulation = tournamentSimulator({
-    teams: bracketTeams,
-    bracketGames,
+  const gameRows = buildGameValueRows({
+    teams,
+    games,
     preset,
-    iterations: 1500,
   });
-
-  const valueRows = games
-    .map((game) => {
-      const awayTeam = matchTeamName(game.awayTeam, teams, "landing-away").matchedTeam;
-      const homeTeam = matchTeamName(game.homeTeam, teams, "landing-home").matchedTeam;
-
-      if (!awayTeam || !homeTeam) {
-        return null;
-      }
-
-      const summary = matchupEngine({
-        allTeams: teams,
-        teamA: awayTeam,
-        teamB: homeTeam,
-        preset,
-        game,
-      });
-      const spreadEdge = Number((summary.modelSpread - -game.spread).toFixed(1));
-      const moneylineEdge =
-        summary.teamA.winProbability - americanToImpliedProbability(game.moneylineAway);
-
-      return {
-        game,
-        awayTeam,
-        homeTeam,
-        matchup: `${awayTeam.name} at ${homeTeam.name}`,
-        sportsbookSpread: -game.spread,
-        modelSpread: summary.modelSpread,
-        spreadEdge,
-        sportsbookMoneyline: game.moneylineAway,
-        modelWinProbability: summary.teamA.winProbability,
-        impliedWinProbability: americanToImpliedProbability(game.moneylineAway),
-        moneylineEdge,
-        upsetRisk: getUpsetRisk(
-          {
-            team: awayTeam,
-            seed: awayTeam.seed ? Number(awayTeam.seed) : null,
-            modelScore: summary.teamA.overallScore,
-            rank: summary.teamA.rank,
-            winProbability: summary.teamA.winProbability,
-          },
-          {
-            team: homeTeam,
-            seed: homeTeam.seed ? Number(homeTeam.seed) : null,
-            modelScore: summary.teamB.overallScore,
-            rank: summary.teamB.rank,
-            winProbability: summary.teamB.winProbability,
-          },
-        ),
-        valueTier: strongestTier(getValueTier(moneylineEdge), getSpreadValueTier(spreadEdge)),
-      } satisfies GameValueRow;
-    })
-    .filter((row): row is GameValueRow => Boolean(row));
+  const bracketRankingRows = buildBracketRankingRows(bracketTeams, preset);
+  const pathRows = pathDifficulty(bracketTeams, bracketGames, bracketRankingRows);
+  const championRows = buildStaticChampionRows(pathRows, 3);
 
   const quickStats = {
-    bestValuePlays: buildTopValuePlays(valueRows, 3),
-    upsetWatch: buildUpsetWatch(valueRows, 3),
-    champions: buildChampionProbabilities(simulation, 3),
+    bestValuePlays: buildTopValuePlays(gameRows, 3),
+    upsetWatch: buildUpsetWatch(gameRows, 3),
+    champions: championRows,
     easiestPaths: buildEasiestPaths(pathRows, 3),
   };
+  const modelStatus = buildModelStatusSummary({
+    teams,
+    dataSource,
+    updatedAt,
+  });
 
   return (
     <div className="space-y-8">
@@ -168,6 +96,12 @@ export function LandingPage({
                 className="rounded-2xl border border-white/12 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-sky-300/30 hover:bg-white/14"
               >
                 Open Bracket Builder
+              </Link>
+              <Link
+                href="/betting/best-bets"
+                className="rounded-2xl border border-white/12 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-sky-300/30 hover:bg-white/14"
+              >
+                Today&apos;s Best Bets
               </Link>
             </div>
             <p className="text-sm text-slate-400">
@@ -230,7 +164,7 @@ export function LandingPage({
             Jump straight into the NCAA toolset
           </h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <QuickLinkCard
             eyebrow="Rankings"
             title="NCAA Rankings"
@@ -258,6 +192,13 @@ export function LandingPage({
             description="Scan game value, futures value, and model-vs-market discrepancies in one view."
             href="/betting"
             cta="View betting board"
+          />
+          <QuickLinkCard
+            eyebrow="Cheat Sheet"
+            title="Best Bets Today"
+            description="Jump straight into the daily moneyline, spread, upset, and futures cheat sheet."
+            href="/betting/best-bets"
+            cta="Open cheat sheet"
           />
         </div>
       </section>
@@ -341,6 +282,8 @@ export function LandingPage({
         </div>
       </section>
 
+      <ModelStatusIndicator status={modelStatus} />
+
       <section className="rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.18),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.46))] p-8 shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
@@ -372,4 +315,33 @@ export function LandingPage({
       </section>
     </div>
   );
+}
+
+function buildStaticChampionRows(rows: ReturnType<typeof pathDifficulty>, limit: number) {
+  const sorted = [...rows].slice(0, limit);
+  const totalAdjusted = sorted.reduce(
+    (sum, row) => sum + Math.max(row.adjustedTournamentScore, 1),
+    0,
+  );
+
+  return sorted.map((row, index) => {
+    const champion = Math.max(
+      0.04,
+      Math.min(0.34, Math.max(row.adjustedTournamentScore, 1) / Math.max(totalAdjusted, 1)),
+    );
+    const championshipGame = Math.min(0.68, champion * 1.85 + 0.08);
+    const finalFour = Math.min(0.78, champion * 2.45 + 0.14);
+    const elite8 = Math.min(0.86, finalFour + 0.1);
+    const sweet16 = Math.min(0.93, elite8 + 0.08);
+
+    return {
+      team: row.team,
+      roundOf32: Math.min(0.97, sweet16 + 0.03),
+      sweet16,
+      elite8,
+      finalFour,
+      championshipGame,
+      champion: Number((champion - index * 0.005).toFixed(4)),
+    };
+  });
 }

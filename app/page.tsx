@@ -14,6 +14,7 @@ export default async function HomePage() {
       bracketGames={bracketGames}
       preset={presets[0]}
       dataSource={meta.source}
+      updatedAt={meta.updatedAt}
     />
   );
 }

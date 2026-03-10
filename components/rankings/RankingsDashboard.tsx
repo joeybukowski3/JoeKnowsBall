@@ -14,6 +14,7 @@ import {
   type RankingsSortState,
 } from "@/components/rankings/RankingsTable";
 import { Badge } from "@/components/shared/Badge";
+import { ModelStatusIndicator } from "@/components/shared/ModelStatusIndicator";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Panel } from "@/components/shared/Panel";
 import { TeamChip } from "@/components/shared/TeamChip";
@@ -37,10 +38,12 @@ import {
   buildTopValuePlays,
   buildUpsetWatch,
 } from "@/lib/utils/insightBuilders";
+import { buildModelStatusSummary } from "@/lib/utils/modelStatus";
 import { matchupEngine } from "@/lib/utils/matchupEngine";
 import { americanToImpliedProbability } from "@/lib/utils/oddsCalculator";
 import { pathDifficulty } from "@/lib/utils/pathDifficulty";
 import { rankingsEngine } from "@/lib/utils/rankingsEngine";
+import { getStatsStatus } from "@/lib/utils/statAvailability";
 import {
   buildBracketRankingRows,
   getUpsetRisk,
@@ -145,6 +148,15 @@ export function RankingsDashboard({
   });
 
   const selectedPreset = presets.find((preset) => preset.id === settings.presetId) ?? presets[0];
+  const statsStatus = getStatsStatus(
+    teams
+      .map((team) => team.statProfile)
+      .filter((profile): profile is NonNullable<Team["statProfile"]> => Boolean(profile)),
+  );
+  const modelStatus = buildModelStatusSummary({
+    teams,
+    dataSource,
+  });
   const tournamentIdSet = new Set(
     tournamentTeamIds.length > 0
       ? tournamentTeamIds
@@ -322,6 +334,17 @@ export function RankingsDashboard({
               <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
                 {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
               </Badge>
+              <Badge
+                tone={
+                  statsStatus === "Live Stats"
+                    ? "emerald"
+                    : statsStatus === "Partial Fallback"
+                      ? "amber"
+                      : "neutral"
+                }
+              >
+                {statsStatus}
+              </Badge>
               <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <button type="button" onClick={() => setTeamView("all")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "all" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>All Teams</button>
                 <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "tournament" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>NCAA Tournament Field</button>
@@ -411,6 +434,8 @@ export function RankingsDashboard({
           <EasiestPaths rows={insightData.easiestPaths} />
         </div>
       </InsightSection>
+
+      <ModelStatusIndicator status={modelStatus} />
     </div>
   );
 }

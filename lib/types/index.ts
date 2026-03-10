@@ -6,6 +6,68 @@ export type TeamStats = {
   turnoverRate: number;
   reboundRate: number;
   freeThrowRate: number;
+  freeThrowPct?: number | null;
+  threePointPct?: number | null;
+  opponentThreePointPct?: number | null;
+  trueShootingPct?: number | null;
+  strengthOfSchedule?: number | null;
+  recentForm?: number | null;
+  homeAwaySplit?: number | null;
+  pace?: number | null;
+};
+
+export type TeamStatSource =
+  | "ncaa-api"
+  | "espn-stats"
+  | "espn-bpi"
+  | "torvik"
+  | "fallback";
+
+export type TeamStatCategoryAvailability = {
+  live: boolean;
+  source: TeamStatSource;
+  fallbackUsed: boolean;
+};
+
+export type NormalizedTeamStats = {
+  teamId: string;
+  displayName: string;
+  updatedAt: string;
+  source: TeamStatSource[];
+  sourceFields: string[];
+  isLive: boolean;
+  completeness: number;
+  status: "live" | "partial-fallback" | "mock-fallback";
+  availability: {
+    offense: TeamStatCategoryAvailability;
+    defense: TeamStatCategoryAvailability;
+    shooting: TeamStatCategoryAvailability;
+    rebounding: TeamStatCategoryAvailability;
+    ballControl: TeamStatCategoryAvailability;
+    freeThrowPct: TeamStatCategoryAvailability;
+    threePointPct: TeamStatCategoryAvailability;
+    opponentThreePointPct: TeamStatCategoryAvailability;
+    trueShootingPct: TeamStatCategoryAvailability;
+    strengthOfSchedule: TeamStatCategoryAvailability;
+    recentForm: TeamStatCategoryAvailability;
+    homeAway: TeamStatCategoryAvailability;
+    pace: TeamStatCategoryAvailability;
+  };
+  values: {
+    adjustedOffense: number | null;
+    adjustedDefense: number | null;
+    shooting: number | null;
+    rebounding: number | null;
+    ballControl: number | null;
+    freeThrowPct: number | null;
+    threePointPct: number | null;
+    opponentThreePointPct: number | null;
+    trueShootingPct: number | null;
+    strengthOfSchedule: number | null;
+    recentForm: number | null;
+    homeAway: number | null;
+    pace: number | null;
+  };
 };
 
 export type RankingCategoryGroup =
@@ -33,6 +95,7 @@ export type Team = {
   logo?: string | null;
   stats: TeamStats;
   metrics: RankingMetrics;
+  statProfile?: NormalizedTeamStats;
 };
 
 export type Game = {
@@ -176,6 +239,9 @@ export type BracketRound =
   | "Championship";
 
 export type BracketMode = "manual" | "auto";
+export type BracketAutoFillMode = "all" | "remaining";
+export type BracketLocksMap = Record<string, boolean>;
+export type UpsetSeverity = "None" | "Mild Upset" | "Strong Upset" | "Major Upset";
 
 export type BracketParticipantSource = {
   type: "team" | "winner";
@@ -234,7 +300,13 @@ export type ResolvedBracketGame = {
   teamA: ResolvedBracketParticipant;
   teamB: ResolvedBracketParticipant;
   winnerTeamId: string | null;
+  isLocked: boolean;
   upsetRisk: "Low" | "Medium" | "High" | "Toss-Up";
+  upsetSeverity: UpsetSeverity;
+  pickReason: {
+    label: string;
+    detail: string;
+  } | null;
 };
 
 export type PathDifficultyRound = {
@@ -274,6 +346,38 @@ export type TournamentSimulationResult = {
   rows: TournamentSimulationRow[];
 };
 
+export type BracketSummaryData = {
+  selectedPreset: string;
+  champion: Team | null;
+  runnerUp: Team | null;
+  finalFour: Team[];
+  upsetCount: number;
+  biggestUpset: {
+    gameId: string;
+    label: string;
+    severity: UpsetSeverity;
+  } | null;
+  strongestRegion: {
+    region: TournamentRegion;
+    score: number;
+  } | null;
+  weakestRegion: {
+    region: TournamentRegion;
+    score: number;
+  } | null;
+};
+
+export type BracketPresetComparisonRow = {
+  presetId: string;
+  presetName: string;
+  champion: Team | null;
+  runnerUp: Team | null;
+  finalFour: Team[];
+  upsetCount: number;
+  biggestUpset: string | null;
+  differentChampion: boolean;
+};
+
 export type FuturesMarket = {
   id: string;
   team: string;
@@ -293,6 +397,16 @@ export type GameOddsLine = {
 };
 
 export type BettingValueTier = "Strong" | "Medium" | "Small" | "Pass";
+export type BestBetValueTier =
+  | "Elite Value"
+  | "Strong Value"
+  | "Moderate Value"
+  | "Pass";
+export type BettingConfidenceTier =
+  | "High Confidence"
+  | "Medium Confidence"
+  | "Volatile";
+export type BetMarketType = "moneyline" | "spread" | "futures";
 
 export type GameValueRow = {
   game: Game;
@@ -319,4 +433,37 @@ export type FuturesValueRow = {
   futuresEdge: number;
   pathDifficulty: number;
   valueTier: BettingValueTier;
+};
+
+export type BestBetRow = {
+  id: string;
+  marketType: BetMarketType;
+  matchup: string;
+  selection: string;
+  team: Team | null;
+  opponent?: Team | null;
+  startTime?: string;
+  edge: number;
+  modelProbability: number;
+  impliedProbability: number;
+  line: string;
+  valueTier: BestBetValueTier;
+  confidenceTier: BettingConfidenceTier;
+  volatilityScore: number;
+  reasons: string[];
+  sourceGame?: GameValueRow;
+  sourceFuture?: FuturesValueRow;
+};
+
+export type UpsetPredictionRow = {
+  id: string;
+  matchup: string;
+  favorite: Team;
+  underdog: Team;
+  favoriteWinProbability: number;
+  upsetProbability: number;
+  upsetSeverity: "Watch" | "Live Dog" | "Danger Zone";
+  confidenceTier: BettingConfidenceTier;
+  reasons: string[];
+  sourceGame: GameValueRow;
 };

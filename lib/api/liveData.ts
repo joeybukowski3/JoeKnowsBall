@@ -1,5 +1,6 @@
 import { adaptNcaaGames, adaptNcaaTeams } from "@/lib/adapters/ncaaAdapter";
 import { adaptOddsToGameLines, adaptOddsToTeamOdds } from "@/lib/adapters/oddsAdapter";
+import { adaptTeamStatsFeeds } from "@/lib/adapters/teamStatsAdapter";
 import {
   fetchNcaaRankingsFeed,
   fetchNcaaScoreboardFeed,
@@ -7,6 +8,7 @@ import {
   fetchNcaaTeamFeed,
 } from "@/lib/api/fetchNcaa";
 import { fetchNcaabOddsFeed } from "@/lib/api/fetchOdds";
+import { fetchTeamStatsBundle } from "@/lib/api/fetchTeamStats";
 import {
   games as fallbackGames,
   mockBracketGames,
@@ -15,8 +17,17 @@ import {
   odds as fallbackOdds,
 } from "@/lib/data";
 import { tournamentField } from "@/lib/data/tournamentField";
-import type { DataEnvelope, DataMeta, FuturesMarket, Game, Team } from "@/lib/types";
+import type {
+  DataEnvelope,
+  DataMeta,
+  FuturesMarket,
+  Game,
+  NormalizedTeamStats,
+  Team,
+} from "@/lib/types";
 import { buildTournamentTeams } from "@/lib/utils/buildTournamentBracket";
+import { mergeStatsIntoTeams } from "@/lib/utils/statMerge";
+import { getStatsStatus, logStatDiagnostics } from "@/lib/utils/statAvailability";
 import { getCanonicalTeamIdentity } from "@/lib/utils/teamMatcher";
 
 function buildMockMeta(provider: string, fallbackReason: string): DataMeta {
@@ -86,24 +97,113 @@ export async function getNcaaTeamsData(): Promise<DataEnvelope<Team[]>> {
       gamesPayload,
       fallbackTeams: mockTeams,
     });
+    const teamStats = await getNcaaTeamStatsData(teams, standingsPayload);
+    const enrichedTeams = mergeStatsIntoTeams(teams, teamStats.data);
 
     if (teams === mockTeams) {
       return {
-        data: mockTeams,
+        data: mergeStatsIntoTeams(mockTeams, teamStats.data),
         meta: buildMockMeta("NCAA API", "Live NCAA team feed was unavailable."),
       };
     }
 
     return {
-      data: teams,
+      data: enrichedTeams,
       meta: buildLiveMeta("NCAA API"),
     };
   } catch (error) {
+    const teamStats = await getNcaaTeamStatsData(mockTeams);
     return {
-      data: mockTeams,
+      data: mergeStatsIntoTeams(mockTeams, teamStats.data),
       meta: buildMockMeta(
         "NCAA API",
         error instanceof Error ? error.message : "Live NCAA team feed failed.",
+      ),
+    };
+  }
+}
+
+export async function getNcaaTeamStatsData(
+  teams: Team[] = mockTeams,
+  standingsPayload?: unknown,
+): Promise<DataEnvelope<NormalizedTeamStats[]>> {
+  try {
+    const feeds = await fetchTeamStatsBundle({ standingsPayload });
+    const normalized = adaptTeamStatsFeeds({
+      teams,
+      espnPages: feeds.espnPages,
+      ncaaStandingsPayload: feeds.ncaaStandingsPayload,
+      torvikPayload: feeds.torvikPayload,
+      fetchedAt: feeds.fetchedAt,
+    });
+    const statsStatus = getStatsStatus(normalized);
+    logStatDiagnostics(normalized);
+
+    return {
+      data: normalized,
+      meta:
+        statsStatus === "Mock Fallback"
+          ? buildMockMeta(
+              feeds.torvikPayload ? "ESPN + NCAA API + Torvik supplement" : "ESPN + NCAA API",
+              "Live stat coverage was unavailable.",
+            )
+          : {
+              source: statsStatus === "Live Stats" ? "live" : "mock",
+              provider: feeds.torvikPayload
+                ? "ESPN + NCAA API + Torvik supplement"
+                : "ESPN + NCAA API",
+              fallbackReason:
+                statsStatus === "Partial Fallback"
+                  ? "Partial stat coverage; fallback values are still filling missing categories."
+                  : undefined,
+              updatedAt: feeds.fetchedAt,
+            },
+    };
+  } catch (error) {
+    return {
+      data: teams.map((team) => ({
+        teamId: team.id,
+        displayName: team.name,
+        updatedAt: new Date().toISOString(),
+        source: ["fallback"],
+        sourceFields: [],
+        isLive: false,
+        completeness: 0,
+        status: "mock-fallback",
+        availability: {
+          offense: { live: false, source: "fallback", fallbackUsed: true },
+          defense: { live: false, source: "fallback", fallbackUsed: true },
+          shooting: { live: false, source: "fallback", fallbackUsed: true },
+          rebounding: { live: false, source: "fallback", fallbackUsed: true },
+          ballControl: { live: false, source: "fallback", fallbackUsed: true },
+          freeThrowPct: { live: false, source: "fallback", fallbackUsed: true },
+          threePointPct: { live: false, source: "fallback", fallbackUsed: true },
+          opponentThreePointPct: { live: false, source: "fallback", fallbackUsed: true },
+          trueShootingPct: { live: false, source: "fallback", fallbackUsed: true },
+          strengthOfSchedule: { live: false, source: "fallback", fallbackUsed: true },
+          recentForm: { live: false, source: "fallback", fallbackUsed: true },
+          homeAway: { live: false, source: "fallback", fallbackUsed: true },
+          pace: { live: false, source: "fallback", fallbackUsed: true },
+        },
+        values: {
+          adjustedOffense: null,
+          adjustedDefense: null,
+          shooting: null,
+          rebounding: null,
+          ballControl: null,
+          freeThrowPct: null,
+          threePointPct: null,
+          opponentThreePointPct: null,
+          trueShootingPct: null,
+          strengthOfSchedule: null,
+          recentForm: null,
+          homeAway: null,
+          pace: null,
+        },
+      })),
+      meta: buildMockMeta(
+        "ESPN + NCAA API",
+        error instanceof Error ? error.message : "Live stat ingestion failed.",
       ),
     };
   }
@@ -249,7 +349,7 @@ export async function getNcaaDashboardData() {
         pageSource === "mock"
           ? teamsResult.meta.fallbackReason ?? gamesResult.meta.fallbackReason
           : undefined,
-      updatedAt: new Date().toISOString(),
+      updatedAt: teamsResult.meta.updatedAt ?? new Date().toISOString(),
     } satisfies DataMeta,
   };
 }
@@ -280,7 +380,7 @@ export async function getBettingPageData() {
       source: dashboardData.meta.source,
       provider: dashboardData.meta.provider,
       fallbackReason: dashboardData.meta.fallbackReason ?? futuresResult.meta.fallbackReason,
-      updatedAt: new Date().toISOString(),
+      updatedAt: dashboardData.meta.updatedAt ?? new Date().toISOString(),
     } satisfies DataMeta,
   };
 }

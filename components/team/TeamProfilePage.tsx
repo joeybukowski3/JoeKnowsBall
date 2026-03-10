@@ -168,6 +168,21 @@ export function TeamProfilePage({
               <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
                 {dataSource === "live" ? "Live Data" : "Mock Fallback"}
               </Badge>
+              <Badge
+                tone={
+                  team.statProfile?.status === "live"
+                    ? "emerald"
+                    : team.statProfile?.status === "partial-fallback"
+                      ? "amber"
+                      : "neutral"
+                }
+              >
+                {team.statProfile?.status === "live"
+                  ? "Live Stats"
+                  : team.statProfile?.status === "partial-fallback"
+                    ? "Partial Fallback"
+                    : "Mock Fallback"}
+              </Badge>
               {team.seed ? <Badge tone="sky">{team.seed} Seed</Badge> : null}
               <Badge tone="neutral">{team.conference}</Badge>
             </div>

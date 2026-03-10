@@ -26,7 +26,7 @@ function logUnresolved(rawName: string, context?: string) {
     return;
   }
 
-  const key = `${context ?? "general"}::${rawName}`;
+  const key = normalizeTeamName(rawName);
   if (unresolvedNames.has(key)) {
     return;
   }

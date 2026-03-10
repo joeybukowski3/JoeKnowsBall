@@ -7,6 +7,7 @@ type BracketBoardProps = {
   rounds: Record<BracketRound, ResolvedBracketGame[]>;
   mode: BracketMode;
   onPick: (gameId: string, teamId: string) => void;
+  onToggleLock: (gameId: string) => void;
 };
 
 const roundOrder: BracketRound[] = [
@@ -18,7 +19,7 @@ const roundOrder: BracketRound[] = [
   "Championship",
 ];
 
-export function BracketBoard({ rounds, mode, onPick }: BracketBoardProps) {
+export function BracketBoard({ rounds, mode, onPick, onToggleLock }: BracketBoardProps) {
   return (
     <div className="overflow-x-auto pb-1">
       <div className="grid min-w-[1560px] grid-cols-6 gap-4">
@@ -39,6 +40,7 @@ export function BracketBoard({ rounds, mode, onPick }: BracketBoardProps) {
                   game={game}
                   mode={mode}
                   onPick={onPick}
+                  onToggleLock={onToggleLock}
                 />
               ))}
             </div>

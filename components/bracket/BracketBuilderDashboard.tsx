@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BracketBoard } from "@/components/bracket/BracketBoard";
-import { BracketControls } from "@/components/bracket/BracketControls";
+import { BracketComparisonPanel } from "@/components/bracket/BracketComparisonPanel";
+import { BracketGeneratorControls } from "@/components/bracket/BracketGeneratorControls";
+import { BracketSummaryPanel } from "@/components/bracket/BracketSummaryPanel";
 import { PathDifficultyPanel } from "@/components/bracket/PathDifficultyPanel";
 import { TournamentSimulationPanel } from "@/components/bracket/TournamentSimulationPanel";
 import { ChampionProbabilities } from "@/components/insights/ChampionProbabilities";
@@ -18,6 +20,7 @@ import { TeamChip } from "@/components/shared/TeamChip";
 import { activeTournamentField } from "@/lib/data/tournamentField";
 import type {
   BracketGameNode,
+  BracketLocksMap,
   BracketMode,
   BracketRound,
   RankingPreset,
@@ -25,6 +28,8 @@ import type {
   Team,
   TournamentSimulationResult,
 } from "@/lib/types";
+import { buildPresetComparisons } from "@/lib/utils/bracketComparison";
+import { buildBracketSummary, generateBracketPicks } from "@/lib/utils/bracketGenerator";
 import {
   buildBracketUpsetWatch,
   buildChampionProbabilities,
@@ -39,7 +44,6 @@ import {
   validateTournamentField,
 } from "@/lib/utils/tournamentFieldManager";
 import {
-  autoFillBracket,
   buildBracketRankingRows,
   resolveBracket,
   tournamentSimulator,
@@ -69,47 +73,74 @@ export function BracketBuilderDashboard({
   const [mode, setMode] = useState<BracketMode>("manual");
   const [presetId, setPresetId] = useState(presets[0].id);
   const [picks, setPicks] = useState<BracketPicksMap>({});
+  const [lockedGames, setLockedGames] = useState<BracketLocksMap>({});
   const [iterationCount, setIterationCount] = useState(5000);
-  const [simulationResult, setSimulationResult] =
-    useState<TournamentSimulationResult | null>(null);
+  const [comparisonEnabled, setComparisonEnabled] = useState(false);
+  const [simulationResult, setSimulationResult] = useState<TournamentSimulationResult | null>(null);
 
   const selectedPreset = presets.find((preset) => preset.id === presetId) ?? presets[0];
-  const rankingRows = buildBracketRankingRows(teams, selectedPreset);
-  const resolvedGames = resolveBracket(bracketGames, teams, rankingRows, picks);
-  const rounds = Object.fromEntries(
-    roundOrder.map((round) => [
-      round,
-      resolvedGames.filter((game) => game.round === round),
-    ]),
-  ) as Record<BracketRound, ResolvedBracketGame[]>;
-  const paths = pathDifficulty(teams, bracketGames, rankingRows);
-  const championGame = resolvedGames.find((game) => game.id === "championship-1");
-  const upsetHotspots = resolvedGames.filter(
-    (game) => game.upsetRisk === "High" || game.upsetRisk === "Medium",
+  const rankingRows = useMemo(
+    () => buildBracketRankingRows(teams, selectedPreset),
+    [selectedPreset, teams],
   );
-  const champion =
-    championGame?.winnerTeamId
-      ? teams.find((team) => team.id === championGame.winnerTeamId) ?? null
-      : paths[0]?.team ?? null;
-  const baselineSimulation = tournamentSimulator({
-    teams,
-    bracketGames,
-    preset: selectedPreset,
-    iterations: 2000,
-    lockedPicks: picks,
-  });
+  const resolvedGames = useMemo(
+    () => resolveBracket(bracketGames, teams, rankingRows, picks, lockedGames, selectedPreset),
+    [bracketGames, lockedGames, picks, rankingRows, selectedPreset, teams],
+  );
+  const rounds = useMemo(
+    () =>
+      Object.fromEntries(
+        roundOrder.map((round) => [round, resolvedGames.filter((game) => game.round === round)]),
+      ) as Record<BracketRound, ResolvedBracketGame[]>,
+    [resolvedGames],
+  );
+  const paths = useMemo(
+    () => pathDifficulty(teams, bracketGames, rankingRows),
+    [bracketGames, rankingRows, teams],
+  );
+  const fieldValidation = validateTournamentField(activeTournamentField);
+  const tournamentSummary = buildTournamentSummary(activeTournamentField, teams);
+  logTournamentFieldWarnings(fieldValidation);
+
+  const upsetHotspots = resolvedGames.filter(
+    (game) => game.upsetRisk === "High" || game.upsetRisk === "Medium" || game.upsetSeverity !== "None",
+  );
+  const baselineSimulation = useMemo(
+    () =>
+      tournamentSimulator({
+        teams,
+        bracketGames,
+        preset: selectedPreset,
+        iterations: 2000,
+        lockedPicks: picks,
+      }),
+    [bracketGames, picks, selectedPreset, teams],
+  );
   const displaySimulation = simulationResult ?? baselineSimulation;
   const easiestPaths = buildEasiestPaths(paths, 5);
   const hardestPaths = buildHardestPaths(paths, 5);
   const championProbabilities = buildChampionProbabilities(displaySimulation, 5);
   const finalFourProbabilities = buildFinalFourProbabilities(displaySimulation, 4);
   const bracketUpsets = buildBracketUpsetWatch(upsetHotspots, 5);
-  const fieldValidation = validateTournamentField(activeTournamentField);
-  const tournamentSummary = buildTournamentSummary(activeTournamentField, teams);
-  logTournamentFieldWarnings(fieldValidation);
+  const summary = useMemo(
+    () => buildBracketSummary({ preset: selectedPreset, resolvedGames, paths }),
+    [paths, resolvedGames, selectedPreset],
+  );
+  const comparisonRows = useMemo(
+    () =>
+      buildPresetComparisons({
+        teams,
+        bracketGames,
+        presets,
+        lockedGames,
+        lockedPicks: picks,
+        selectedPresetId: selectedPreset.id,
+      }),
+    [bracketGames, lockedGames, picks, presets, selectedPreset.id, teams],
+  );
 
   function handlePick(gameId: string, teamId: string) {
-    if (mode !== "manual") {
+    if (lockedGames[gameId]) {
       return;
     }
 
@@ -119,13 +150,23 @@ export function BracketBuilderDashboard({
     }));
   }
 
-  function handleAutoFill() {
-    setPicks(autoFillBracket(bracketGames, teams, rankingRows));
+  function handleAutoFill(fillMode: "all" | "remaining") {
+    const generated = generateBracketPicks({
+      bracketGames,
+      teams,
+      preset: selectedPreset,
+      existingPicks: picks,
+      lockedGames,
+      fillMode,
+    });
+    setPicks(generated.picks);
     setMode("auto");
   }
 
   function handleReset() {
     setPicks({});
+    setLockedGames({});
+    setSimulationResult(null);
     setMode("manual");
   }
 
@@ -133,8 +174,20 @@ export function BracketBuilderDashboard({
     setMode(nextMode);
 
     if (nextMode === "auto") {
-      setPicks(autoFillBracket(bracketGames, teams, rankingRows));
+      handleAutoFill("all");
     }
+  }
+
+  function handleToggleLock(gameId: string) {
+    const game = resolvedGames.find((entry) => entry.id === gameId);
+    if (!game?.winnerTeamId) {
+      return;
+    }
+
+    setLockedGames((current) => ({
+      ...current,
+      [gameId]: !current[gameId],
+    }));
   }
 
   function handleRunSimulation() {
@@ -153,23 +206,32 @@ export function BracketBuilderDashboard({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Bracket Builder"
-        title="Interactive tournament bracket"
-        description="Build the field manually or auto-advance teams using the active ranking preset, then compare path difficulty, upset spots, and simulation output against the current board."
+        title="Interactive tournament bracket generator"
+        description="Auto-build the field from any preset, lock key picks, compare how each model sees the bracket, and keep the simulation stack tied to the current board state."
       >
-        <Badge tone={fieldValidation.isValid ? "emerald" : "amber"}>
-          {fieldValidation.isValid ? "Field Validated" : "Field Needs Review"}
-        </Badge>
+        <div className="flex flex-wrap gap-2">
+          <Badge tone={fieldValidation.isValid ? "emerald" : "amber"}>
+            {fieldValidation.isValid ? "Field Validated" : "Field Needs Review"}
+          </Badge>
+          <Badge tone="sky">{Object.values(lockedGames).filter(Boolean).length} locked picks</Badge>
+        </div>
       </PageHeader>
 
-      <BracketControls
+      <BracketGeneratorControls
         mode={mode}
         presetId={selectedPreset.id}
         presets={presets}
+        comparisonEnabled={comparisonEnabled}
+        lockedCount={Object.values(lockedGames).filter(Boolean).length}
         onModeChange={handleModeChange}
         onPresetChange={setPresetId}
-        onAutoFill={handleAutoFill}
+        onToggleComparison={() => setComparisonEnabled((current) => !current)}
+        onAutoFillAll={() => handleAutoFill("all")}
+        onAutoFillRemaining={() => handleAutoFill("remaining")}
         onReset={handleReset}
       />
+
+      {comparisonEnabled ? <BracketComparisonPanel rows={comparisonRows} /> : null}
 
       <InsightSection
         eyebrow="Bracket Insights"
@@ -231,21 +293,24 @@ export function BracketBuilderDashboard({
         </div>
       </InsightSection>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.72fr)_380px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_380px]">
         <Panel
           eyebrow="Bracket View"
           title="Tournament board"
-          description="Click winners in manual mode or auto-fill the full bracket from the active preset."
+          description="Click any unlocked winner to override the model, then lock the pick if you want the generator to preserve it."
         >
-          <BracketBoard rounds={rounds} mode={mode} onPick={handlePick} />
+          <BracketBoard rounds={rounds} mode={mode} onPick={handlePick} onToggleLock={handleToggleLock} />
         </Panel>
 
-        <PathDifficultyPanel
-          paths={paths}
-          champion={champion}
-          resolvedGames={resolvedGames}
-          tournamentSummary={tournamentSummary}
-        />
+        <div className="space-y-6">
+          <BracketSummaryPanel summary={summary} />
+          <PathDifficultyPanel
+            paths={paths}
+            champion={summary.champion ?? displaySimulation.champion}
+            resolvedGames={resolvedGames}
+            tournamentSummary={tournamentSummary}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
@@ -275,11 +340,7 @@ export function BracketBuilderDashboard({
                 {paths.slice(0, 16).map((row) => (
                   <tr key={row.team.id} className="transition hover:bg-white/[0.04]">
                     <td className="px-4 py-3">
-                      <TeamChip
-                        name={row.team.name}
-                        shortName={row.team.shortName}
-                        compact
-                      />
+                      <TeamChip name={row.team.name} shortName={row.team.shortName} compact />
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-slate-200">
                       {row.baseModelScore.toFixed(1)}

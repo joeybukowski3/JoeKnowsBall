@@ -32,13 +32,13 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-[72px] hidden h-fit xl:block">
-      <div className="space-y-6">
+      <div className="space-y-4">
         {sections.map((section) => (
-          <div key={section.label} className="space-y-2">
+          <div key={section.label} className="space-y-1.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.7px] text-[var(--muted)]">
               {section.label}
             </p>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {section.items.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -46,15 +46,17 @@ export function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center justify-between gap-3 rounded-[10px] border px-3 py-2.5 text-[13px] transition ${
+                    className={`flex items-center justify-between gap-2.5 rounded-[8px] border px-2.5 py-2 text-[13px] transition ${
                       active
                         ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
                         : "border-transparent bg-transparent text-[var(--muted)] hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)]"
                     }`}
                   >
-                    <span className="flex items-center gap-2.5">
-                      <span className="inline-flex w-6 justify-center text-base">{item.icon}</span>
-                      <span className="font-medium">{item.label}</span>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="inline-flex w-6 shrink-0 justify-center text-[15px] leading-none">
+                        {item.icon}
+                      </span>
+                      <span className="truncate font-medium">{item.label}</span>
                     </span>
                     <Badge tone={item.badge === "Live" ? "emerald" : "neutral"}>{item.badge}</Badge>
                   </Link>

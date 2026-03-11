@@ -73,11 +73,11 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                 const isActive = sort.key === column.key;
 
                 return (
-                  <th key={column.key} className={`px-4 py-3 ${column.align === "right" ? "text-right" : "text-left"}`}>
+              <th key={column.key} className={`px-3 py-2.5 ${column.align === "right" ? "text-right" : "text-left"}`}>
                     <button
                       type="button"
                       onClick={() => onSort(column.key)}
-                      className={`inline-flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition ${
+                      className={`inline-flex items-center gap-2 rounded-[7px] px-2 py-1 transition ${
                         isActive ? "bg-indigo-500/14 text-slate-50" : "hover:bg-white/[0.04] hover:text-slate-200"
                       }`}
                     >
@@ -94,7 +94,7 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
               const badgeTone = row.valueLabel === "Strong" ? "emerald" : row.valueLabel === "Watch" ? "amber" : "neutral";
               return (
                 <tr key={row.team.id} className={`group hover:bg-[#f5f7fb] ${row.rank <= 3 ? "bg-[#fffbf0]" : ""}`}>
-                  <td className="px-4 py-3 text-sm font-semibold text-white">
+                  <td className="px-3 py-2.5 text-sm font-semibold text-[var(--text)]">
                     <span className={`rounded-[6px] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs font-extrabold ${
                       row.rank === 1
                         ? "text-[var(--gold)]"
@@ -105,11 +105,11 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                             : "text-[var(--text)]"
                     }`}>#{row.rank}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2.5">
                     <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">{row.team.conference}</td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-200">
+                  <td className="px-3 py-2.5 text-sm text-[var(--muted)]">{row.team.conference}</td>
+                  <td className="px-3 py-2.5 text-right text-sm font-semibold text-[var(--accent)]">
                     <div className="flex min-w-[110px] items-center justify-end gap-3">
                       <div className="w-16">
                         <StrengthBar value={row.overallScore} compact />
@@ -117,25 +117,25 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
                       <span>{row.overallScore.toFixed(1)}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.offense.raw, row.categoryScores.offense.normalized)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.defense.raw, row.categoryScores.defense.normalized)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.shooting.raw, row.categoryScores.shooting.normalized)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.rebounding.raw, row.categoryScores.rebounding.normalized)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.sos.raw, row.categoryScores.sos.normalized, 0)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                  <td className="px-3 py-2.5 text-right text-sm text-[var(--muted)]">
                     {renderCategoryCell(row.categoryScores.recentForm.raw, row.categoryScores.recentForm.normalized, 0)}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <Badge tone={badgeTone}>{row.valueLabel}</Badge>
                   </td>
                 </tr>

@@ -109,7 +109,7 @@ select {
 
 .section-grid {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .data-table-wrap {
@@ -227,6 +227,7 @@ select {
   color: var(--text);
   font-weight: 800;
   letter-spacing: -0.4px;
+  line-height: 1.15;
 }
 
 .divider-line {

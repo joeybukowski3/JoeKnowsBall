@@ -31,15 +31,15 @@ export function RankingsControls({
   onReset,
 }: RankingsControlsProps) {
   return (
-    <div className="glass-panel space-y-6 rounded-[10px] p-6">
-      <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-end">
+    <div className="glass-panel space-y-4 rounded-[10px] p-4">
+      <div className="grid gap-3 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end">
         <div className="space-y-2">
           <PresetSelector
             presets={presets}
             value={settings.presetId}
             onChange={onPresetChange}
           />
-          <p className="text-sm leading-6 text-[var(--muted)]">
+          <p className="text-[13px] leading-5 text-[var(--muted)]">
             {selectedPreset.description}
           </p>
         </div>
@@ -47,32 +47,32 @@ export function RankingsControls({
           <button
             type="button"
             onClick={onReset}
-            className="ghost-button px-4 py-2.5"
+            className="ghost-button px-3.5 py-2"
           >
             Reset to preset defaults
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
         {categories.map((category) => {
           const isActive = settings.activeCategories[category.key];
 
           return (
             <label
               key={category.key}
-              className={`group rounded-[24px] border p-4 transition ${
+              className={`group rounded-[10px] border p-3 transition ${
                 isActive
                   ? "border-[var(--accent-mid)] bg-[var(--accent-light)]"
                   : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent-mid)] hover:bg-[#fbfcff]"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-[var(--text)]">
+                <div className="space-y-0.5">
+                  <p className="text-[13px] font-semibold text-[var(--text)]">
                     {category.label}
                   </p>
-                  <p className="text-xs leading-5 text-[var(--muted)]">
+                  <p className="text-[11px] leading-4.5 text-[var(--muted)]">
                     {category.description}
                   </p>
                 </div>
@@ -96,7 +96,7 @@ export function RankingsControls({
                   />
                 </span>
               </div>
-              <div className="mt-4">
+              <div className="mt-3">
                 <WeightSlider
                   label={`${category.label} weight`}
                   value={settings.weights[category.key]}

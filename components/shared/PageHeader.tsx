@@ -12,16 +12,16 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <section className="glass-panel relative overflow-hidden rounded-[10px] p-6 sm:p-7">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="relative space-y-3">
+    <section className="glass-panel relative overflow-hidden rounded-[10px] p-4 sm:p-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="relative space-y-2">
           <p className="section-label">
             {eyebrow}
           </p>
-          <h1 className="page-title max-w-4xl text-[24px] sm:text-[24px]">
+          <h1 className="page-title max-w-4xl text-[20px] sm:text-[22px]">
             {title}
           </h1>
-          <p className="max-w-3xl text-[15px] leading-7 text-[var(--muted)]">{description}</p>
+          <p className="max-w-3xl text-[14px] leading-6 text-[var(--muted)]">{description}</p>
         </div>
         {children ? <div className="relative">{children}</div> : null}
       </div>

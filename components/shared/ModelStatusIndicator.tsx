@@ -14,21 +14,21 @@ export function ModelStatusIndicator({ status }: ModelStatusIndicatorProps) {
         : "neutral";
 
   return (
-    <section className="surface-card px-5 py-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <section className="surface-card px-4 py-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="section-label">
             Model Status
           </p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <p className="mt-1.5 text-[13px] text-[var(--muted)]">
             Current NCAA model health and data coverage for the public board.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="rounded-[6px] border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--muted)]">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="rounded-[6px] border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[13px] text-[var(--muted)]">
             Model updated: <span className="font-semibold text-[var(--text)]">{status.updatedLabel}</span>
           </div>
-          <div className="rounded-[6px] border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--muted)]">
+          <div className="rounded-[6px] border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[13px] text-[var(--muted)]">
             Stats coverage: <span className="font-semibold text-[var(--text)]">{status.statsCoveragePercent}%</span>
           </div>
           <Badge tone={tone}>{status.dataMode}</Badge>

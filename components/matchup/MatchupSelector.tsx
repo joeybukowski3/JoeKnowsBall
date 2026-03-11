@@ -33,20 +33,20 @@ export function MatchupSelector({
   onPresetChange,
 }: MatchupSelectorProps) {
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">
+          <p className="section-label">
             Compare mode
           </p>
-          <div className="inline-flex rounded-2xl border border-white/10 bg-slate-950/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="inline-flex rounded-[8px] border border-[var(--border)] bg-[var(--surface)] p-1">
             <button
               type="button"
               onClick={() => onModeChange("upcoming")}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${
                 mode === "upcoming"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-300 hover:text-white"
+                  ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
+                  : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
               }`}
             >
               Upcoming Matchups
@@ -54,10 +54,10 @@ export function MatchupSelector({
             <button
               type="button"
               onClick={() => onModeChange("manual")}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${
                 mode === "manual"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-300 hover:text-white"
+                  ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
+                  : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
               }`}
             >
               Manual Compare
@@ -74,11 +74,11 @@ export function MatchupSelector({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="surface-card p-3">
           <label
             htmlFor="matchup-game"
-            className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400"
+            className="section-label"
           >
             Upcoming matchup
           </label>
@@ -87,7 +87,7 @@ export function MatchupSelector({
             value={selectedGameId}
             onChange={(event) => onGameChange(event.target.value)}
             disabled={mode !== "upcoming"}
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent-mid)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {games.map((game) => (
               <option key={game.id} value={game.id}>
@@ -95,15 +95,15 @@ export function MatchupSelector({
               </option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-1.5 text-[11px] text-[var(--muted)]">
             Scheduled games populate both teams automatically.
           </p>
         </div>
 
-        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+        <div className="surface-card p-3">
           <label
             htmlFor="team-a"
-            className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400"
+            className="section-label"
           >
             Team A
           </label>
@@ -111,7 +111,7 @@ export function MatchupSelector({
             id="team-a"
             value={teamAId}
             onChange={(event) => onTeamChange("teamA", event.target.value)}
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
+            className="mt-2 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent-mid)]"
           >
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -121,10 +121,10 @@ export function MatchupSelector({
           </select>
         </div>
 
-        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+        <div className="surface-card p-3">
           <label
             htmlFor="team-b"
-            className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400"
+            className="section-label"
           >
             Team B
           </label>
@@ -132,7 +132,7 @@ export function MatchupSelector({
             id="team-b"
             value={teamBId}
             onChange={(event) => onTeamChange("teamB", event.target.value)}
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
+            className="mt-2 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent-mid)]"
           >
             {teams.map((team) => (
               <option key={team.id} value={team.id}>

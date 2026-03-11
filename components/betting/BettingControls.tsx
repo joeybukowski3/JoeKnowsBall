@@ -29,21 +29,21 @@ export function BettingControls({
   onSortChange,
 }: BettingControlsProps) {
   return (
-    <div className="space-y-5 rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_26px_70px_rgba(15,23,42,0.22)] backdrop-blur-sm">
-      <div className="grid gap-4 xl:grid-cols-[320px_220px_220px_minmax(0,1fr)]">
+    <div className="glass-panel space-y-4 rounded-[10px] p-4">
+      <div className="grid gap-3 xl:grid-cols-[280px_210px_210px_minmax(0,1fr)]">
         <PresetSelector
           presets={presets}
           value={presetId}
           onChange={onPresetChange}
         />
-        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-          <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="surface-card p-3">
+          <label className="section-label">
             Date
           </label>
           <select
             value={dateFilter}
             onChange={(event) => onDateFilterChange(event.target.value)}
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
+            className="mt-2 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent-mid)]"
           >
             <option value="all">All Dates</option>
             {dateOptions.map((option) => (
@@ -53,8 +53,8 @@ export function BettingControls({
             ))}
           </select>
         </div>
-        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-          <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="surface-card p-3">
+          <label className="section-label">
             Sort Games
           </label>
           <select
@@ -62,7 +62,7 @@ export function BettingControls({
             onChange={(event) =>
               onSortChange(event.target.value as BettingControlsProps["sortBy"])
             }
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-300/40"
+            className="mt-2 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent-mid)]"
           >
             <option value="edge">Highest Edge</option>
             <option value="winProbability">Highest Win Probability</option>
@@ -70,18 +70,18 @@ export function BettingControls({
             <option value="upsetRisk">Biggest Upset Risk</option>
           </select>
         </div>
-        <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-          <label className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="surface-card p-3">
+          <label className="section-label">
             Slate Filter
           </label>
-          <div className="mt-3 inline-flex rounded-2xl border border-white/10 bg-slate-950/70 p-1">
+          <div className="mt-2 inline-flex rounded-[8px] border border-[var(--border)] bg-[var(--surface)] p-1">
             <button
               type="button"
               onClick={() => onGameFilterChange("all")}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${
                 gameFilter === "all"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-300 hover:text-white"
+                  ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
+                  : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
               }`}
             >
               All Games
@@ -89,10 +89,10 @@ export function BettingControls({
             <button
               type="button"
               onClick={() => onGameFilterChange("top")}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+              className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${
                 gameFilter === "top"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-300 hover:text-white"
+                  ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
+                  : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
               }`}
             >
               Top Value Plays

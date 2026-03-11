@@ -42,13 +42,13 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
   const teams = [game.teamA, game.teamB];
 
   return (
-    <article className="glass-panel rounded-[28px] p-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
+    <article className="glass-panel rounded-[10px] p-3">
+      <div className="mb-2.5 flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          <p className="section-label">
             {game.region}
           </p>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+          <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
             {game.round}
           </p>
         </div>
@@ -61,7 +61,7 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {teams.map((participant) => {
           const isSelected = participant.team && game.winnerTeamId === participant.team.id;
           const canPick = Boolean(participant.team) && !game.isLocked;
@@ -72,13 +72,13 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
               type="button"
               disabled={!canPick}
               onClick={() => (participant.team ? onPick(game.id, participant.team.id) : undefined)}
-              className={`w-full rounded-2xl border p-3 text-left transition ${
+              className={`w-full rounded-[8px] border p-2.5 text-left transition ${
                 isSelected
-                  ? "border-indigo-400/40 bg-indigo-500/12 shadow-[0_12px_30px_rgba(79,70,229,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]"
-                  : "border-white/8 bg-white/[0.035]"
+                  ? "border-[var(--accent-mid)] bg-[var(--accent-light)]"
+                  : "border-[var(--border)] bg-[var(--surface)]"
               } ${
                 canPick
-                  ? "hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.08]"
+                  ? "hover:-translate-y-0.5 hover:border-[var(--accent-mid)] hover:bg-[#f8fbff]"
                   : "cursor-default opacity-85"
               }`}
             >
@@ -95,10 +95,10 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
                   compact
                 />
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-indigo-200">
+                  <p className="text-[13px] font-semibold text-[var(--accent)]">
                     {participant.modelScore?.toFixed(1) ?? "--"}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-0.5 text-[11px] text-[var(--muted)]">
                     {participant.winProbability !== null && participant.winProbability !== undefined
                       ? `${(participant.winProbability * 100).toFixed(1)}%`
                       : "--"}
@@ -110,33 +110,33 @@ export function BracketGame({ game, mode, onPick, onToggleLock }: BracketGamePro
         })}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--border)] pt-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <p className="section-label">
             Why this pick
           </p>
-          <p className="mt-1 text-xs text-slate-300">
+          <p className="mt-0.5 text-[12px] text-[var(--text)]">
             {game.pickReason?.label ?? "No winner selected yet"}
           </p>
           {game.pickReason ? (
-            <p className="mt-1 text-[11px] text-slate-500">{game.pickReason.detail}</p>
+            <p className="mt-0.5 text-[11px] text-[var(--muted)]">{game.pickReason.detail}</p>
           ) : null}
         </div>
         <button
           type="button"
           disabled={!game.winnerTeamId}
           onClick={() => onToggleLock(game.id)}
-          className={`rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+          className={`rounded-[8px] border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition ${
             game.isLocked
-              ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
-              : "border-white/12 bg-white/8 text-slate-200 hover:border-indigo-400/30 hover:bg-indigo-500/12"
+              ? "border-[var(--gold-bg)] bg-[var(--gold-bg)] text-[var(--gold)]"
+              : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:border-[var(--accent-mid)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
           } ${!game.winnerTeamId ? "cursor-not-allowed opacity-60" : ""}`}
         >
           {game.isLocked ? "Unlock pick" : "Lock pick"}
         </button>
       </div>
 
-      <p className="mt-2 text-[11px] text-slate-500">
+      <p className="mt-1.5 text-[10px] text-[var(--muted)]">
         {mode === "manual"
           ? "Manual mode: click an unlocked team to override the current winner."
           : "Auto mode: generated winners stay editable until you lock the game."}

@@ -12,7 +12,7 @@ export function TopValuePlays({
   title = "Best Value Plays Today",
 }: TopValuePlaysProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {rows.map((row) => (
         <InsightCard
           key={row.game.id}

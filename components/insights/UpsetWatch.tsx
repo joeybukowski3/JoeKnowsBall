@@ -39,7 +39,7 @@ export function UpsetWatch({
         }));
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => (
         <InsightCard
           key={item.id}

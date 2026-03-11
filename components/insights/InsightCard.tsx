@@ -18,20 +18,20 @@ export function InsightCard({
   children,
 }: InsightCardProps) {
   return (
-    <article className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.34))] p-4 shadow-[0_18px_50px_rgba(15,23,42,0.16)]">
+    <article className="surface-card p-3.5">
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="space-y-1">
+          <p className="section-label">
             {eyebrow}
           </p>
-          <h3 className="text-base font-semibold text-white">{title}</h3>
+          <h3 className="text-[14px] font-semibold leading-5 text-[var(--text)]">{title}</h3>
         </div>
         {value ? <Badge tone={tone}>{value}</Badge> : null}
       </div>
       {description ? (
-        <p className="mt-3 text-sm leading-6 text-slate-300">{description}</p>
+        <p className="mt-2 text-[13px] leading-5 text-[var(--muted)]">{description}</p>
       ) : null}
-      {children ? <div className="mt-4">{children}</div> : null}
+      {children ? <div className="mt-2.5">{children}</div> : null}
     </article>
   );
 }

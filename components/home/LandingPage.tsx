@@ -74,8 +74,8 @@ export function LandingPage({
               <p className="section-label">
                 March Launch
               </p>
-              <h1 className="page-title max-w-3xl text-[21px] sm:text-[24px]">
-                Premium March Madness analytics, open for NCAA right now.
+              <h1 className="page-title max-w-3xl text-[11px] sm:text-[14px]">
+                Joe Knows Ball.
               </h1>
               <p className="max-w-3xl text-[13px] leading-5 text-[var(--muted)]">
                 Explore customizable power rankings, matchup analysis, bracket

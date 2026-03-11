@@ -369,6 +369,7 @@ export function RankingsDashboard({
             onCategoryToggle={handleCategoryToggle}
             onWeightChange={handleWeightChange}
             onReset={handleReset}
+            compact={focusedHomeView}
           />
 
           <Panel

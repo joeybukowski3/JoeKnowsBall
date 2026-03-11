@@ -18,6 +18,7 @@ type RankingsControlsProps = {
   onCategoryToggle: (category: RankingCategoryGroup) => void;
   onWeightChange: (category: RankingCategoryGroup, value: number) => void;
   onReset: () => void;
+  compact?: boolean;
 };
 
 export function RankingsControls({
@@ -29,10 +30,11 @@ export function RankingsControls({
   onCategoryToggle,
   onWeightChange,
   onReset,
+  compact = false,
 }: RankingsControlsProps) {
   return (
-    <div className="glass-panel space-y-4 rounded-[10px] p-4">
-      <div className="grid gap-3 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end">
+    <div className={`glass-panel rounded-[10px] ${compact ? "space-y-3 p-3" : "space-y-4 p-4"}`}>
+      <div className={`grid gap-3 ${compact ? "lg:grid-cols-[240px_minmax(0,1fr)]" : "lg:grid-cols-[280px_minmax(0,1fr)]"} lg:items-end`}>
         <div className="space-y-2">
           <PresetSelector
             presets={presets}
@@ -54,14 +56,14 @@ export function RankingsControls({
         </div>
       </div>
 
-      <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+      <div className={`grid gap-2 ${compact ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"}`}>
         {categories.map((category) => {
           const isActive = settings.activeCategories[category.key];
 
           return (
             <label
               key={category.key}
-              className={`group rounded-[10px] border p-3 transition ${
+              className={`group rounded-[10px] border transition ${compact ? "p-2.5" : "p-3"} ${
                 isActive
                   ? "border-[var(--accent-mid)] bg-[var(--accent-light)]"
                   : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent-mid)] hover:bg-[#fbfcff]"
@@ -69,10 +71,10 @@ export function RankingsControls({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-0.5">
-                  <p className="text-[13px] font-semibold text-[var(--text)]">
+                  <p className={`${compact ? "text-[12px]" : "text-[13px]"} font-semibold text-[var(--text)]`}>
                     {category.label}
                   </p>
-                  <p className="text-[11px] leading-4.5 text-[var(--muted)]">
+                  <p className={`${compact ? "text-[10px] leading-4" : "text-[11px] leading-4.5"} text-[var(--muted)]`}>
                     {category.description}
                   </p>
                 </div>
@@ -96,12 +98,13 @@ export function RankingsControls({
                   />
                 </span>
               </div>
-              <div className="mt-3">
+              <div className={compact ? "mt-2" : "mt-3"}>
                 <WeightSlider
                   label={`${category.label} weight`}
                   value={settings.weights[category.key]}
                   active={isActive}
                   onChange={(value) => onWeightChange(category.key, value)}
+                  compact={compact}
                 />
               </div>
             </label>

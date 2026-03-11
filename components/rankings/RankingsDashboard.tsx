@@ -322,32 +322,34 @@ export function RankingsDashboard({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_320px]">
-        <div className="space-y-4">
+    <div className="space-y-3">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.78fr)_290px]">
+        <div className="space-y-3">
           <PageHeader
             eyebrow="NCAA Analytics"
-            title="March betting intelligence and power rankings"
-            description="Custom rankings, tournament-field filtering, futures watchlists, and matchup context in a brighter premium NCAA dashboard."
+            title="NCAA power rankings"
+            description="Preset-driven rankings, tournament filtering, and betting context in one compact board."
           >
-            <div className="flex flex-col items-end gap-2">
-              <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
-                {dataSource === "live" ? "Live Data" : "Mock Data Fallback"}
-              </Badge>
-              <Badge
-                tone={
-                  statsStatus === "Live Stats"
-                    ? "emerald"
-                    : statsStatus === "Partial Fallback"
-                      ? "amber"
-                      : "neutral"
-                }
-              >
-                {statsStatus}
-              </Badge>
+            <div className="flex flex-col items-end gap-1.5">
+              <div className="flex flex-wrap justify-end gap-1.5">
+                <Badge tone={dataSource === "live" ? "emerald" : "amber"}>
+                  {dataSource === "live" ? "Live Data" : "Mock Data"}
+                </Badge>
+                <Badge
+                  tone={
+                    statsStatus === "Live Stats"
+                      ? "emerald"
+                      : statsStatus === "Partial Fallback"
+                        ? "amber"
+                        : "neutral"
+                  }
+                >
+                  {statsStatus}
+                </Badge>
+              </div>
               <div className="inline-flex rounded-[8px] border border-[var(--border)] bg-[var(--surface)] p-1">
-                <button type="button" onClick={() => setTeamView("all")} className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${teamView === "all" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>All Teams</button>
-                <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-[7px] border px-3 py-1.5 text-[13px] font-semibold transition ${teamView === "tournament" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>Tournament Field</button>
+                <button type="button" onClick={() => setTeamView("all")} className={`rounded-[7px] border px-2.5 py-1 text-[12px] font-semibold transition ${teamView === "all" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>All Teams</button>
+                <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-[7px] border px-2.5 py-1 text-[12px] font-semibold transition ${teamView === "tournament" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>Tournament</button>
               </div>
             </div>
           </PageHeader>
@@ -366,17 +368,17 @@ export function RankingsDashboard({
           <Panel
             eyebrow="Power Ratings"
             title={`${filteredTeams.length} teams in the model`}
-            description="Overall score updates immediately as categories are toggled and weighted."
+            description="The active preset recalculates immediately as you adjust categories and weights."
           >
             <RankingsTable rows={sortedRows} sort={sort} onSort={handleSort} />
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Panel
             eyebrow="Futures Watch"
             title="Top title prices"
-            description="Quick premium-style monitor for current title prices and top internal edges."
+            description="Quick monitor for title prices and model edges."
           >
             <div className="space-y-2.5">
               {insightData.futuresWatch.map((entry) => (
@@ -402,7 +404,7 @@ export function RankingsDashboard({
           <Panel
             eyebrow="Schedule"
             title="Upcoming Matchups"
-            description="Snapshot of the current NCAA slate with venue context and rotation-friendly scanability."
+            description="Fast scan of the current slate."
           >
             <div className="space-y-2.5">
               {games.slice(0, 4).map((game) => (
@@ -426,7 +428,7 @@ export function RankingsDashboard({
         title="Model-driven NCAA content"
         description="The current preset powers these quick-hit value, futures, upset, and tournament outlook modules."
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           <TopValuePlays rows={insightData.topValuePlays} />
           <UpsetWatch games={insightData.upsetWatch} />
           <FuturesValueWatch rows={insightData.futuresWatch} />

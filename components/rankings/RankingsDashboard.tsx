@@ -61,6 +61,7 @@ type RankingsDashboardProps = {
   bracketGames: BracketGameNode[];
   dataSource?: DataSource;
   tournamentTeamIds?: string[];
+  focusedHomeView?: boolean;
 };
 
 type TeamView = "all" | "tournament";
@@ -137,6 +138,7 @@ export function RankingsDashboard({
   bracketGames,
   dataSource = "mock",
   tournamentTeamIds = [],
+  focusedHomeView = false,
 }: RankingsDashboardProps) {
   const [teamView, setTeamView] = useState<TeamView>("all");
   const [settings, setSettings] = useState<RankingSettings>(() =>
@@ -170,6 +172,10 @@ export function RankingsDashboard({
   const sortedRows = sortRows(rankedRows, sort);
 
   const insightData = useMemo(() => {
+    if (focusedHomeView) {
+      return null;
+    }
+
     const bracketRankingRows = buildBracketRankingRows(bracketTeams, selectedPreset);
     const rankingByName = new Map(bracketRankingRows.map((row) => [row.team.name, row]));
     const pathRows = pathDifficulty(bracketTeams, bracketGames, bracketRankingRows);
@@ -276,7 +282,7 @@ export function RankingsDashboard({
       championProbabilities: buildChampionProbabilities(simulationResult, 3),
       easiestPaths: buildEasiestPaths(pathRows, 3),
     };
-  }, [bracketGames, bracketTeams, futuresMarkets, games, selectedPreset, teams]);
+  }, [bracketGames, bracketTeams, focusedHomeView, futuresMarkets, games, selectedPreset, teams]);
 
   function handlePresetChange(presetId: string) {
     const nextPreset = presets.find((preset) => preset.id === presetId);
@@ -323,8 +329,8 @@ export function RankingsDashboard({
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.78fr)_290px]">
-        <div className="space-y-3">
+      <div className={`grid gap-3 ${focusedHomeView ? "" : "xl:grid-cols-[minmax(0,1.78fr)_290px]"}`}>
+        <div className="space-y-3 min-w-0">
           <PageHeader
             eyebrow="NCAA Analytics"
             title="NCAA power rankings"
@@ -374,6 +380,7 @@ export function RankingsDashboard({
           </Panel>
         </div>
 
+        {!focusedHomeView && insightData ? (
         <div className="space-y-3">
           <Panel
             eyebrow="Futures Watch"
@@ -421,8 +428,10 @@ export function RankingsDashboard({
             </div>
           </Panel>
         </div>
+        ) : null}
       </div>
 
+      {!focusedHomeView && insightData ? (
       <InsightSection
         eyebrow="NCAA Insights"
         title="Model-driven NCAA content"
@@ -436,6 +445,7 @@ export function RankingsDashboard({
           <EasiestPaths rows={insightData.easiestPaths} />
         </div>
       </InsightSection>
+      ) : null}
 
       <ModelStatusIndicator status={modelStatus} />
     </div>

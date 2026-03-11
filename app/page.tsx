@@ -17,6 +17,7 @@ export default async function HomePage() {
       bracketGames={bracketGames}
       dataSource={meta.source}
       tournamentTeamIds={tournamentFieldTeamIds}
+      focusedHomeView
     />
   );
 }

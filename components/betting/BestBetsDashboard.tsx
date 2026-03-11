@@ -73,7 +73,7 @@ export function BestBetsDashboard({
           </Badge>
           <Link
             href="/betting"
-            className="rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:border-white/20 hover:bg-white/14"
+            className="ghost-button px-4 py-2 text-xs uppercase tracking-[0.18em]"
           >
             Full betting board
           </Link>
@@ -87,13 +87,13 @@ export function BestBetsDashboard({
         strongestFuture={snapshot.strongestFuture}
       />
 
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+      <div className="surface-card p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-wrap gap-3">
             <select
               value={selectedPreset.id}
               onChange={(event) => setPresetId(event.target.value)}
-              className="rounded-2xl border border-white/12 bg-slate-950/70 px-4 py-2.5 text-sm text-white outline-none transition hover:border-white/20"
+              className="rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text)] outline-none transition hover:border-[var(--accent-mid)]"
             >
               {presets.map((preset) => (
                 <option key={preset.id} value={preset.id}>
@@ -101,14 +101,16 @@ export function BestBetsDashboard({
                 </option>
               ))}
             </select>
-            <div className="inline-flex rounded-2xl border border-white/10 bg-slate-950/70 p-1">
+            <div className="inline-flex rounded-[8px] border border-[var(--border)] bg-[var(--surface)] p-1">
               {(["edge", "confidence", "upset", "futures"] as SortMode[]).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setSortMode(mode)}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                    sortMode === mode ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"
+                  className={`rounded-[7px] border px-4 py-2 text-sm font-semibold transition ${
+                    sortMode === mode
+                      ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]"
+                      : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
                   }`}
                 >
                   {mode === "edge"
@@ -122,7 +124,7 @@ export function BestBetsDashboard({
               ))}
             </div>
           </div>
-          <p className="max-w-2xl text-sm text-slate-400">
+          <p className="max-w-2xl text-sm text-[var(--muted)]">
             This board reuses the current matchup, ranking, odds, and tournament-simulation layers so daily picks stay aligned with the rest of the product.
           </p>
         </div>

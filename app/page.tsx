@@ -1,20 +1,22 @@
-import { LandingPage } from "@/components/home/LandingPage";
+import { RankingsDashboard } from "@/components/rankings/RankingsDashboard";
 import { getBettingPageData } from "@/lib/api/liveData";
-import { presets } from "@/lib/data/presets";
+import { presets } from "@/lib/data";
+import { tournamentFieldTeamIds } from "@/lib/data/tournamentField";
 
 export default async function HomePage() {
-  const { teams, bracketTeams, games, bracketGames, meta } =
+  const { teams, bracketTeams, games, futuresMarkets, bracketGames, meta } =
     await getBettingPageData();
 
   return (
-    <LandingPage
+    <RankingsDashboard
       teams={teams}
       bracketTeams={bracketTeams}
+      presets={presets}
+      futuresMarkets={futuresMarkets}
       games={games}
       bracketGames={bracketGames}
-      preset={presets[0]}
       dataSource={meta.source}
-      updatedAt={meta.updatedAt}
+      tournamentTeamIds={tournamentFieldTeamIds}
     />
   );
 }

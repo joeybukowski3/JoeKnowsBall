@@ -158,9 +158,9 @@ export function TeamProfilePage({
   return (
     <div className="space-y-6">
       <section
-        className="overflow-hidden rounded-[32px] border border-white/10 p-6 shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:p-8"
+        className="overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)] sm:p-8"
         style={{
-          background: `radial-gradient(circle at top, ${meta.primary}33, transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.08), rgba(15,23,42,0.46))`,
+          background: `linear-gradient(180deg, ${meta.primary}14, transparent 32%), var(--surface)`,
         }}
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -219,10 +219,10 @@ export function TeamProfilePage({
             </div>
           </div>
           <div className="max-w-md space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/85">
+            <p className="section-label">
               Team outlook
             </p>
-            <p className="text-sm leading-7 text-slate-300">
+            <p className="text-sm leading-7 text-[var(--muted)]">
               This page combines the current model rank, weighted category profile,
               tournament path, simulation probabilities, and futures context for a
               single NCAA team view.

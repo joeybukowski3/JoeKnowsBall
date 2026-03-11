@@ -66,8 +66,8 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
   return (
     <div className="data-table-wrap">
       <div className="overflow-x-auto">
-        <table className="data-table min-w-[1180px] divide-y divide-white/8 text-left">
-          <thead className="bg-[rgba(17,24,39,0.86)]">
+        <table className="data-table min-w-[1180px] text-left">
+          <thead className="bg-[var(--bg)]">
             <tr className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
               {columns.map((column) => {
                 const isActive = sort.key === column.key;
@@ -93,9 +93,17 @@ export function RankingsTable({ rows, sort, onSort }: RankingsTableProps) {
             {rows.map((row) => {
               const badgeTone = row.valueLabel === "Strong" ? "emerald" : row.valueLabel === "Watch" ? "amber" : "neutral";
               return (
-                <tr key={row.team.id} className="group hover:bg-white/[0.045]">
+                <tr key={row.team.id} className={`group hover:bg-[#f5f7fb] ${row.rank <= 3 ? "bg-[#fffbf0]" : ""}`}>
                   <td className="px-4 py-3 text-sm font-semibold text-white">
-                    <span className="rounded-full border border-white/8 bg-white/[0.045] px-2.5 py-1 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">#{row.rank}</span>
+                    <span className={`rounded-[6px] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs font-extrabold ${
+                      row.rank === 1
+                        ? "text-[var(--gold)]"
+                        : row.rank === 2
+                          ? "text-slate-500"
+                          : row.rank === 3
+                            ? "text-amber-800"
+                            : "text-[var(--text)]"
+                    }`}>#{row.rank}</span>
                   </td>
                   <td className="px-4 py-3">
                     <TeamChip team={row.team} name={row.team.name} shortName={row.team.shortName} subtitle={row.team.record} compact />

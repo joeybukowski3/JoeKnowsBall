@@ -16,15 +16,15 @@ export function QuickLinkCard({
   cta,
 }: QuickLinkCardProps) {
   return (
-    <article className="glass-panel rounded-[28px] p-5 hover:-translate-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo-200/80">
+    <article className="surface-card p-5">
+      <p className="section-label">
         {eyebrow}
       </p>
-      <h3 className="mt-3 text-xl font-semibold tracking-[-0.02em] text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-7 text-slate-400">{description}</p>
+      <h3 className="mt-3 text-xl font-extrabold tracking-[-0.3px] text-[var(--text)]">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{description}</p>
       <Link
         href={href}
-        className="mt-5 inline-flex rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-white transition hover:border-indigo-400/35 hover:bg-indigo-500/12"
+        className="ghost-button mt-5 px-4 py-2.5"
       >
         {cta}
       </Link>

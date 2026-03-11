@@ -331,7 +331,7 @@ export function BettingDashboard({
           </Badge>
           <Link
             href="/betting/best-bets"
-            className="rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:border-white/20 hover:bg-white/14"
+            className="ghost-button px-4 py-2 text-xs uppercase tracking-[0.18em]"
           >
             Best Bets Today
           </Link>

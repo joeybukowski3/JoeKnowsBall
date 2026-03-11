@@ -346,8 +346,8 @@ export function RankingsDashboard({
                 {statsStatus}
               </Badge>
               <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                <button type="button" onClick={() => setTeamView("all")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "all" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>All Teams</button>
-                <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${teamView === "tournament" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/[0.05] hover:text-white"}`}>NCAA Tournament Field</button>
+                <button type="button" onClick={() => setTeamView("all")} className={`rounded-[8px] border px-4 py-2.5 text-sm font-semibold transition ${teamView === "all" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>All Teams</button>
+                <button type="button" onClick={() => setTeamView("tournament")} className={`rounded-[8px] border px-4 py-2.5 text-sm font-semibold transition ${teamView === "tournament" ? "border-[var(--accent-mid)] bg-[var(--accent-light)] text-[var(--accent)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"}`}>NCAA Tournament Field</button>
               </div>
             </div>
           </PageHeader>
@@ -382,15 +382,15 @@ export function RankingsDashboard({
               {insightData.futuresWatch.map((entry) => (
                 <div
                   key={entry.team.id}
-                  className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  className="surface-card p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <TeamChip team={entry.team} name={entry.team.name} subtitle={entry.team.conference} compact />
                     <Badge tone="emerald">{(entry.futuresEdge * 100).toFixed(1)}%</Badge>
                   </div>
-                  <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-4 flex items-center justify-between text-xs text-[var(--muted)]">
                     <span>Model title probability</span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 font-medium text-white">
+                    <span className="rounded-[5px] border border-[var(--border)] bg-[var(--bg)] px-2 py-1 font-medium text-[var(--text)]">
                       {(entry.modelTitleProbability * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -406,11 +406,11 @@ export function RankingsDashboard({
           >
             <div className="space-y-3">
               {games.slice(0, 4).map((game) => (
-                <div key={game.id} className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                <div key={game.id} className="surface-card p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-white">{game.awayTeam} at {game.homeTeam}</p>
-                      <p className="text-xs text-slate-400">{game.startTime} - {game.round}</p>
+                      <p className="text-sm font-semibold text-[var(--text)]">{game.awayTeam} at {game.homeTeam}</p>
+                      <p className="text-xs text-[var(--muted)]">{game.startTime} - {game.round}</p>
                     </div>
                     <Badge tone="sky">{game.neutralSite ? "Neutral" : "Campus"}</Badge>
                   </div>

@@ -12,8 +12,8 @@ type MatchupSummaryProps = {
 
 function getCardTone(isEdge: boolean) {
   return isEdge
-    ? "border-indigo-400/30 bg-[linear-gradient(180deg,rgba(79,70,229,0.18),rgba(255,255,255,0.03))]"
-    : "border-white/10 bg-white/[0.04]";
+    ? "border-[var(--accent-mid)] bg-[var(--accent-light)]"
+    : "border-[var(--border)] bg-[var(--surface)]";
 }
 
 export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
@@ -22,21 +22,21 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
 
   return (
     <div className="grid gap-4 xl:grid-cols-2">
-      <section className={`glass-panel rounded-[30px] p-6 ${getCardTone(summary.edgeTeam === "teamA")}`}>
+      <section className={`glass-panel rounded-[10px] p-6 ${getCardTone(summary.edgeTeam === "teamA")}`}>
         <div className="mb-5 h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${metaA.primary}, ${metaA.secondary})` }} />
         <div className="flex items-start justify-between gap-3">
           <TeamChip team={summary.teamA.team} name={summary.teamA.team.name} shortName={summary.teamA.team.shortName} subtitle={summary.teamA.team.conference} />
           <Badge tone="sky">Rank #{summary.teamA.rank}</Badge>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Model Score</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{summary.teamA.overallScore.toFixed(1)}</p>
+          <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4">
+            <p className="section-label">Model Score</p>
+            <p className="mt-2 text-3xl font-extrabold text-[var(--text)]">{summary.teamA.overallScore.toFixed(1)}</p>
             <StrengthBar value={summary.teamA.overallScore} className="mt-3" />
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Win Probability</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{(summary.teamA.winProbability * 100).toFixed(1)}%</p>
+          <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4">
+            <p className="section-label">Win Probability</p>
+            <p className="mt-2 text-3xl font-extrabold text-[var(--text)]">{(summary.teamA.winProbability * 100).toFixed(1)}%</p>
             <StrengthBar value={summary.teamA.winProbability * 100} className="mt-3" tone="positive" />
           </div>
         </div>
@@ -48,21 +48,21 @@ export function MatchupSummary({ summary, game }: MatchupSummaryProps) {
         </div>
       </section>
 
-      <section className={`glass-panel rounded-[30px] p-6 ${getCardTone(summary.edgeTeam === "teamB")}`}>
+      <section className={`glass-panel rounded-[10px] p-6 ${getCardTone(summary.edgeTeam === "teamB")}`}>
         <div className="mb-5 h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${metaB.primary}, ${metaB.secondary})` }} />
         <div className="flex items-start justify-between gap-3">
           <TeamChip team={summary.teamB.team} name={summary.teamB.team.name} shortName={summary.teamB.team.shortName} subtitle={summary.teamB.team.conference} />
           <Badge tone="sky">Rank #{summary.teamB.rank}</Badge>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Model Score</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{summary.teamB.overallScore.toFixed(1)}</p>
+          <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4">
+            <p className="section-label">Model Score</p>
+            <p className="mt-2 text-3xl font-extrabold text-[var(--text)]">{summary.teamB.overallScore.toFixed(1)}</p>
             <StrengthBar value={summary.teamB.overallScore} className="mt-3" />
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Win Probability</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{(summary.teamB.winProbability * 100).toFixed(1)}%</p>
+          <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4">
+            <p className="section-label">Win Probability</p>
+            <p className="mt-2 text-3xl font-extrabold text-[var(--text)]">{(summary.teamB.winProbability * 100).toFixed(1)}%</p>
             <StrengthBar value={summary.teamB.winProbability * 100} className="mt-3" tone="positive" />
           </div>
         </div>

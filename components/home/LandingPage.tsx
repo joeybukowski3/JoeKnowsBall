@@ -61,9 +61,7 @@ export function LandingPage({
 
   return (
     <div className="space-y-10">
-      <section className="glass-panel relative overflow-hidden rounded-[38px] p-7 shadow-[0_36px_120px_rgba(0,0,0,0.34)] sm:p-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,70,229,0.28),transparent_34%),radial-gradient(circle_at_85%_15%,rgba(34,197,94,0.1),transparent_20%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_52%)]" />
-        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_55%)] lg:block" />
+      <section className="glass-panel relative overflow-hidden rounded-[10px] p-7 sm:p-10">
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_400px] lg:items-end">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3">
@@ -73,13 +71,13 @@ export function LandingPage({
               </Badge>
             </div>
             <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-indigo-200/90">
+              <p className="section-label">
                 March Launch
               </p>
-              <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
+              <h1 className="page-title max-w-4xl text-[32px] sm:text-[38px] lg:text-[46px]">
                 Premium betting analytics for March Madness, with NCAA access open right now.
               </h1>
-              <p className="max-w-3xl text-base leading-8 text-slate-300">
+              <p className="max-w-3xl text-base leading-8 text-[var(--muted)]">
                 Explore customizable power rankings, matchup analysis, bracket
                 simulation, and betting value tools built for tournament users.
                 NFL, NBA, MLB, and PGA are already staged as part of the Pro roadmap.
@@ -88,64 +86,64 @@ export function LandingPage({
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/ncaa"
-                className="rounded-2xl bg-[linear-gradient(135deg,#4f46e5,#6366f1)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(79,70,229,0.32)] transition hover:-translate-y-0.5 hover:brightness-110"
+                className="primary-button px-5 py-3"
               >
                 Explore NCAA Rankings
               </Link>
               <Link
                 href="/bracket"
-                className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.1]"
+                className="ghost-button px-5 py-3"
               >
                 Open Bracket Builder
               </Link>
               <Link
                 href="/betting/best-bets"
-                className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-emerald-400/30 hover:bg-white/[0.1]"
+                className="ghost-button px-5 py-3"
               >
                 Today&apos;s Best Bets
               </Link>
             </div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-[var(--muted)]">
               NCAA tournament access is free for a limited time while the broader
               multi-sport analytics platform rolls out.
             </p>
           </div>
 
           <div className="grid gap-4">
-            <div className="glass-panel rounded-[30px] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+            <div className="surface-card p-5">
+              <p className="section-label">
                 Right now
               </p>
-              <p className="mt-3 text-2xl font-semibold text-white">
+              <p className="mt-3 text-2xl font-extrabold text-[var(--text)]">
                 Rankings, bracket edges, matchup tools, and value screens.
               </p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
                 Built for tournament week workflows: scan the slate, compare teams,
                 stress-test the bracket, and surface the best market edges quickly.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="glass-panel rounded-[24px] p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              <div className="surface-card p-4">
+                <p className="section-label">
                   Best value play
                 </p>
-                <p className="mt-2 text-lg font-semibold text-white">
+                <p className="mt-2 text-lg font-extrabold text-[var(--text)]">
                   {quickStats.bestValuePlays[0]?.matchup ?? "Pending slate"}
                 </p>
-                <p className="mt-2 text-sm text-emerald-200">
+                <p className="mt-2 text-sm text-[var(--green)]">
                   {quickStats.bestValuePlays[0]
                     ? `${(quickStats.bestValuePlays[0].moneylineEdge * 100).toFixed(1)}% moneyline edge`
                     : "--"}
                 </p>
               </div>
-              <div className="glass-panel rounded-[24px] p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              <div className="surface-card p-4">
+                <p className="section-label">
                   Top champion
                 </p>
-                <p className="mt-2 text-lg font-semibold text-white">
+                <p className="mt-2 text-lg font-extrabold text-[var(--text)]">
                   {quickStats.champions[0]?.team.name ?? "Pending simulation"}
                 </p>
-                <p className="mt-2 text-sm text-sky-200">
+                <p className="mt-2 text-sm text-[var(--accent)]">
                   {quickStats.champions[0]
                     ? `${(quickStats.champions[0].champion * 100).toFixed(1)}% title probability`
                     : "--"}
@@ -158,10 +156,10 @@ export function LandingPage({
 
       <section className="space-y-4">
         <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+            <p className="section-label">
               Quick Access
             </p>
-          <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
+          <h2 className="page-title text-[24px]">
             Jump straight into the NCAA toolset
           </h2>
         </div>
@@ -219,13 +217,13 @@ export function LandingPage({
 
       <section className="space-y-4">
         <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+            <p className="section-label">
               Pro Sports
             </p>
-          <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
+          <h2 className="page-title text-[24px]">
             Multi-sport premium modules are already staged
           </h2>
-          <p className="max-w-3xl text-sm leading-7 text-slate-300">
+          <p className="max-w-3xl text-sm leading-7 text-[var(--muted)]">
             NCAA is fully accessible right now. NFL, NBA, MLB, and PGA are positioned as Pro experiences with deeper boards, matchup tools, value models, and premium workflows.
           </p>
         </div>
@@ -251,14 +249,14 @@ export function LandingPage({
 
       <section className="grid gap-4 xl:grid-cols-5">
         <div className="xl:col-span-2">
-            <div className="glass-panel rounded-[30px] p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+            <div className="surface-card p-6">
+            <p className="section-label">
               Why JKB
             </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">
+            <h2 className="page-title mt-3 text-[24px]">
               Built for bettors who want usable edges, not generic dashboards.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-slate-300">
+            <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
               Every module is aimed at one workflow: understand the team profile,
               compare the matchup, pressure-test the bracket, and act on value.
             </p>
@@ -274,10 +272,10 @@ export function LandingPage({
           ].map(([title, description]) => (
             <div
               key={title}
-              className="glass-panel rounded-[26px] p-5"
+              className="surface-card p-5"
             >
-              <h3 className="text-lg font-semibold text-white">{title}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-300">{description}</p>
+              <h3 className="text-lg font-extrabold text-[var(--text)]">{title}</h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{description}</p>
             </div>
           ))}
         </div>
@@ -285,32 +283,32 @@ export function LandingPage({
 
       <ModelStatusIndicator status={modelStatus} />
 
-      <section className="glass-panel rounded-[34px] p-8">
+      <section className="glass-panel rounded-[10px] p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/85">
+            <p className="section-label">
               Launch CTA
             </p>
-            <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">
+            <h2 className="page-title text-[24px]">
               Start with NCAA for free, then unlock the full platform.
             </h2>
-            <p className="max-w-3xl text-sm leading-7 text-slate-300">
+            <p className="max-w-3xl text-sm leading-7 text-[var(--muted)]">
               Dive into March Madness tools now, then move into Pro when you want the broader multi-sport board.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="/ncaa"
-              className="rounded-2xl bg-[linear-gradient(135deg,#4f46e5,#6366f1)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(79,70,229,0.32)] transition hover:-translate-y-0.5 hover:brightness-110"
-            >
-              Explore NCAA for Free
-            </Link>
-            <Link
-              href="/pricing"
-              className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-indigo-400/30 hover:bg-white/[0.1]"
-            >
-              Upgrade to Pro
-            </Link>
+              <Link
+                href="/ncaa"
+                className="primary-button px-5 py-3"
+              >
+                Explore NCAA for Free
+              </Link>
+              <Link
+                href="/pricing"
+                className="ghost-button px-5 py-3"
+              >
+                Upgrade to Pro
+              </Link>
           </div>
         </div>
       </section>

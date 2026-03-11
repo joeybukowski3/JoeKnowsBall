@@ -66,7 +66,7 @@ export function TeamLogo({
   if (activeLogo) {
     return (
       <div
-        className={`relative flex shrink-0 items-center justify-center overflow-hidden border border-white/15 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] ${shapeClass} ${sizeClasses[size]} ${className}`.trim()}
+        className={`relative flex shrink-0 items-center justify-center overflow-hidden border border-[var(--border)] bg-[var(--bg)] ${shapeClass} ${sizeClasses[size]} ${className}`.trim()}
       >
         {/* Use a native img so remote logos work without adding image host config. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -96,10 +96,9 @@ export function TeamLogo({
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] ${shapeClass} ${sizeClasses[size]} ${className}`.trim()}
+      className={`flex shrink-0 items-center justify-center border border-[var(--border)] bg-[var(--bg)] ${shapeClass} ${sizeClasses[size]} ${className}`.trim()}
       style={{
-        background: `linear-gradient(135deg, ${meta.primary}, ${meta.secondary})`,
-        color: meta.secondary === "#ffffff" ? "#0f172a" : "#ffffff",
+        color: "var(--accent)",
       }}
       aria-label={`${name} monogram`}
     >
